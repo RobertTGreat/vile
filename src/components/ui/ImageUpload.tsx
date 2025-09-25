@@ -1,0 +1,163 @@
+'use client'
+
+import { useState, useCallback } from 'react'
+import { useDropzone } from 'react-dropzone'
+import { Upload, X, Image as ImageIcon } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
+import GlassButton from './GlassButton'
+
+interface ImageUploadProps {
+  onUploadComplete: (urls: string[]) => void
+  maxFiles?: number
+  className?: string
+}
+
+export default function ImageUpload({ onUploadComplete, maxFiles = 5, className = '' }: ImageUploadProps) {
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState(0)
+
+  const uploadToServer = async (files: File[]) => {
+    setIsUploading(true)
+    setUploadProgress(0)
+
+    try {
+      const formData = new FormData()
+      files.forEach((file, index) => {
+        formData.append(`file${index}`, file)
+      })
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Upload failed')
+      }
+
+      const result = await response.json()
+      const urls = result.urls || []
+      
+      setUploadedImages(prev => [...prev, ...urls])
+      onUploadComplete([...uploadedImages, ...urls])
+    } catch (error) {
+      console.error('Upload error:', error)
+    } finally {
+      setIsUploading(false)
+      setUploadProgress(0)
+    }
+  }
+
+  const compressImage = async (file: File): Promise<File> => {
+    const options = {
+      maxSizeMB: 1, // Maximum file size in MB
+      maxWidthOrHeight: 1920, // Maximum width or height
+      useWebWorker: true,
+      quality: 0.8, // Image quality (0-1)
+    }
+
+    try {
+      const compressedFile = await imageCompression(file, options)
+      return compressedFile
+    } catch (error) {
+      console.error('Image compression failed:', error)
+      return file // Return original file if compression fails
+    }
+  }
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return
+
+    try {
+      // Compress images before upload
+      const compressedFiles = await Promise.all(
+        acceptedFiles.map(file => compressImage(file))
+      )
+
+      // Upload compressed files
+      await uploadToServer(compressedFiles)
+    } catch (error) {
+      console.error('Upload failed:', error)
+    }
+  }, [uploadedImages])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: {
+      'image/*': ['.jpeg', '.jpg', '.png', '.webp']
+    },
+    maxFiles: maxFiles - uploadedImages.length,
+    disabled: isUploading || uploadedImages.length >= maxFiles
+  })
+
+  const removeImage = (index: number) => {
+    const newImages = uploadedImages.filter((_, i) => i !== index)
+    setUploadedImages(newImages)
+    onUploadComplete(newImages)
+  }
+
+  return (
+    <div className={`space-y-4 ${className}`}>
+      <div
+        {...getRootProps()}
+        className={`
+          border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200
+          ${isDragActive ? 'border-purple-400 bg-purple-500/10' : 'border-white/20 hover:border-white/40'}
+          ${isUploading || uploadedImages.length >= maxFiles ? 'opacity-50 cursor-not-allowed' : ''}
+        `}
+        style={{ 
+          borderColor: isDragActive ? 'var(--border-glass)' : 'var(--border-glass)',
+          backgroundColor: isDragActive ? 'var(--bg-glass-hover)' : 'transparent'
+        }}
+      >
+        <input {...getInputProps()} />
+        <div className="flex flex-col items-center gap-2">
+          {isUploading ? (
+            <>
+              <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+              <p style={{ color: 'var(--text-secondary)' }}>
+                Uploading... {uploadProgress}%
+              </p>
+            </>
+          ) : (
+            <>
+              <Upload size={32} style={{ color: 'var(--text-muted)' }} />
+              <div>
+                <p style={{ color: 'var(--text-primary)' }}>
+                  {isDragActive ? 'Drop images here' : 'Drag & drop images here'}
+                </p>
+                <p style={{ color: 'var(--text-muted)' }} className="text-sm">
+                  or click to select files
+                </p>
+                <p style={{ color: 'var(--text-muted)' }} className="text-xs mt-1">
+                  Max {maxFiles} files, up to 4MB each
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+
+      {uploadedImages.length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {uploadedImages.map((url, index) => (
+            <div key={index} className="relative group">
+              <img
+                src={url}
+                alt={`Upload ${index + 1}`}
+                className="w-full h-32 object-cover rounded-lg"
+              />
+              <button
+                onClick={() => removeImage(index)}
+                className="absolute top-2 right-2 p-1 bg-red-500/80 hover:bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <X size={16} className="text-white" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
