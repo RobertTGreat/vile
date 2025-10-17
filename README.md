@@ -1,4 +1,4 @@
-# Frosted Resale - Modern Marketplace
+# Vile - Modern Marketplace
 
 A beautiful, modern resale marketplace built with Next.js, Supabase, and a stunning frosted glass UI design.
 
@@ -9,6 +9,8 @@ A beautiful, modern resale marketplace built with Next.js, Supabase, and a stunn
 - 📝 **Post Creation**: Create and manage resale posts with rich metadata
 - 🏷️ **Tagging System**: Organize posts with customizable tags
 - 🔍 **Search & Filter**: Advanced search and filtering capabilities
+- 🛒 **Shopping Cart**: Add items to basket and manage purchases
+- 👤 **User Management**: My Posts page for managing your listings
 - 📱 **Responsive Design**: Works perfectly on all devices
 - ⚡ **Real-time Updates**: Live data synchronization with Supabase
 
@@ -25,46 +27,49 @@ A beautiful, modern resale marketplace built with Next.js, Supabase, and a stunn
 ### Prerequisites
 
 - Node.js 18+ 
-- npm or yarn
+- npm, pnpm or bun
 - Supabase account
 
 ### 1. Clone and Install
 
 ```bash
 git clone <your-repo-url>
-cd frosted-resale
+cd vile
 npm install
 ```
 
-### 2. Set up Supabase
+### 2. Environment Setup
 
-1. Create a new project at [supabase.com](https://supabase.com)
-2. Go to Settings > API to get your project URL and anon key
-3. Update the Supabase configuration in `src/lib/supabase.ts`:
+**IMPORTANT**: Create a `.env` file in the root directory and paste the environment variables that were shared in Discord. This file contains your Supabase credentials and should never be committed to version control.
 
-```typescript
-const supabaseUrl = 'your_supabase_project_url'
-const supabaseAnonKey = 'your_supabase_anon_key'
+```bash
+# Create the environment file
+Create .env
+or
+touch .env
 ```
+
+Then paste the environment variables from the Discord message into this file.
 
 ### 3. Set up Database
 
-Run the SQL migration in `supabase/migrations/001_initial_schema.sql` in your Supabase SQL editor. This will create:
+The database schema is already configured. The project includes:
 
 - `profiles` table for user profiles
-- `posts` table for resale posts
+- `posts` table for resale posts  
 - `tags` table for post tags
 - `post_tags` junction table
+- `storage.buckets` for image uploads
 - Row Level Security policies
 - Triggers for user signup
 
 ### 4. Configure Authentication
 
-In your Supabase dashboard:
+Authentication is already configured, but you may need to update the site URL in your Supabase dashboard:
 
 1. Go to Authentication > Settings
 2. Add your domain to "Site URL" (e.g., `http://localhost:3000` for development)
-3. Add redirect URLs for authentication
+3. Add redirect URLs for authentication if needed
 
 ### 5. Run the Development Server
 
@@ -79,28 +84,45 @@ Open [http://localhost:3000](http://localhost:3000) to see your app.
 ```
 src/
 ├── app/                    # Next.js app directory
-│   ├── globals.css        # Global styles with frosted glass theme
-│   ├── layout.tsx         # Root layout
-│   └── page.tsx           # Home page
+│   ├── api/               # API routes
+│   │   └── upload/       # Image upload endpoints
+│   ├── my-posts/         # User's posts management page
+│   ├── post/[id]/        # Individual post page
+│   ├── search/           # Search page
+│   ├── globals.css       # Global styles with frosted glass theme
+│   ├── layout.tsx        # Root layout
+│   └── page.tsx          # Home page
 ├── components/
-│   ├── auth/              # Authentication components
-│   │   ├── AuthModal.tsx  # Sign in/up modal
-│   │   └── UserMenu.tsx   # User dropdown menu
-│   ├── layout/            # Layout components
-│   │   └── Header.tsx     # Main header
-│   ├── posts/             # Post-related components
+│   ├── auth/             # Authentication components
+│   │   ├── AuthModal.tsx # Sign in/up modal
+│   │   └── UserMenu.tsx  # User dropdown menu
+│   ├── basket/           # Shopping cart components
+│   │   └── BasketModal.tsx # Cart modal
+│   ├── layout/           # Layout components
+│   │   └── Header.tsx    # Main header
+│   ├── posts/            # Post-related components
 │   │   ├── CreatePostModal.tsx # Post creation form
-│   │   ├── PostCard.tsx   # Individual post display
-│   │   └── PostList.tsx   # Posts listing with search/filter
-│   └── ui/                # Reusable UI components
+│   │   ├── EditPostModal.tsx   # Post editing modal
+│   │   ├── PostCard.tsx        # Individual post display
+│   │   ├── PostList.tsx        # Posts listing with search/filter
+│   │   └── SearchPostList.tsx  # Search results
+│   ├── providers/        # Context providers
+│   └── ui/               # Reusable UI components
 │       ├── GlassButton.tsx    # Frosted glass button
 │       ├── GlassCard.tsx      # Frosted glass card
 │       ├── GlassInput.tsx     # Frosted glass input
-│       └── GlassTextarea.tsx  # Frosted glass textarea
-└── lib/                   # Utility libraries
-    ├── supabase.ts        # Supabase client
-    ├── supabase-client.ts # Browser client
-    └── supabase-server.ts # Server client
+│       ├── GlassTextarea.tsx  # Frosted glass textarea
+│       ├── ImageUpload.tsx    # Image upload component
+│       └── ThemeSelector.tsx   # Theme switcher
+├── contexts/             # React contexts
+│   ├── BasketContext.tsx     # Shopping cart state
+│   ├── SearchContext.tsx     # Search state
+│   └── ThemeContext.tsx      # Theme state
+└── lib/                  # Utility libraries
+    ├── supabase.ts           # Supabase client
+    ├── supabase-client.ts    # Browser client
+    ├── supabase-server.ts    # Server client
+    └── supabase-storage.ts   # Storage utilities
 ```
 
 ## Key Features Explained
@@ -122,20 +144,24 @@ The app uses a custom frosted glass design system with:
 
 ### Post Management
 
-- Rich post creation with title, description, price, condition
+- Rich post creation with title, description, price, condition, location
 - Tagging system with predefined categories
-- Image support (ready for implementation)
+- Image upload and management with Supabase Storage
+- Edit and delete posts from "My Posts" page
 - Search and filtering capabilities
 - Real-time updates
+- Shopping cart functionality
 
 ### Database Schema
 
 The database includes:
 - User profiles with username and full name
-- Posts with comprehensive metadata
+- Posts with comprehensive metadata (title, description, price, condition, category, location, images)
 - Tags with custom colors
 - Many-to-many relationship between posts and tags
+- Supabase Storage bucket for image uploads
 - Row Level Security for data protection
+- Shopping cart functionality (client-side state)
 
 ## Customization
 
@@ -162,10 +188,11 @@ bg-white/20 /* 20% opacity */
 
 ### Adding New Post Fields
 
-1. Update the database schema in `supabase/migrations/`
-2. Modify the `CreatePostModal.tsx` component
+1. Update the database schema in Supabase dashboard
+2. Modify the `CreatePostModal.tsx` and `EditPostModal.tsx` components
 3. Update the `PostCard.tsx` display component
 4. Adjust the `PostList.tsx` query
+5. Update TypeScript interfaces
 
 ## Deployment
 
@@ -201,10 +228,21 @@ MIT License - feel free to use this project for your own marketplace!
 ## Support
 
 If you encounter any issues:
-1. Check the Supabase dashboard for database/auth issues
-2. Verify your environment variables
-3. Check the browser console for errors
-4. Open an issue on GitHub
+1. **Check your `.env` file** - Make sure you've created it with the environment variables from Discord
+2. Check the Supabase dashboard for database/auth issues
+3. Verify your environment variables are correct
+4. Check the browser console for errors
+5. Open an issue on GitHub
+
+## Quick Start Checklist
+
+- [ ] Clone the repository
+- [ ] Run `npm install`
+- [ ] **Create `.env` file with environment variables from Discord**
+- [ ] Run `npm run dev`
+- [ ] Open `http://localhost:3000`
+- [ ] Sign up for an account
+- [ ] Create your first post!
 
 ---
 

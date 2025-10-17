@@ -16,6 +16,7 @@ export default function Home() {
     setIsAuthOpen(true)
   }
 
+
   return (
     <div className="min-h-screen">
       <Header onAuth={handleAuth} />

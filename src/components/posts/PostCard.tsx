@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import GlassCard from '@/components/ui/GlassCard'
-import { MapPin, Calendar, Tag, DollarSign } from 'lucide-react'
+import GlassButton from '@/components/ui/GlassButton'
+import { useBasket } from '@/contexts/BasketContext'
+import { MapPin, Calendar, Tag, DollarSign, ShoppingCart, Plus } from 'lucide-react'
 
 interface Post {
   id: string
@@ -34,6 +36,7 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const [imageError, setImageError] = useState(false)
+  const { addToBasket } = useBasket()
 
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price not specified'
@@ -62,9 +65,24 @@ export default function PostCard({ post }: PostCardProps) {
     return colors[condition as keyof typeof colors] || 'text-white/70'
   }
 
+  const handleAddToBasket = (e: React.MouseEvent) => {
+    e.preventDefault() // Prevent navigation to post page
+    e.stopPropagation()
+    
+    if (post.is_sold) return // Don't add sold items
+    
+    addToBasket({
+      id: post.id,
+      title: post.title,
+      price: post.price || 0,
+      image_url: post.image_urls?.[0] || '',
+      seller: post.profiles.username || post.profiles.full_name
+    })
+  }
+
   return (
     <Link href={`/post/${post.id}`}>
-      <GlassCard className="p-6 hover:scale-105 transition-transform duration-300 cursor-pointer">
+      <GlassCard className="p-6 hover:scale-105 transition-transform duration-300 cursor-pointer relative group">
         {/* Post Image */}
         {post.image_urls && post.image_urls.length > 0 && (
           <div className="mb-4">
@@ -93,7 +111,7 @@ export default function PostCard({ post }: PostCardProps) {
       </div>
 
       {post.description && (
-        <p className="mb-4 line-clamp-3" style={{ color: 'var(--text-secondary)' }}>
+        <p className="mb-4 line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
           {post.description}
         </p>
       )}
@@ -122,36 +140,52 @@ export default function PostCard({ post }: PostCardProps) {
         )}
       </div>
 
-      {post.post_tags && post.post_tags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
-          {post.post_tags.map((tagWrapper, index) => (
-            <span
-              key={index}
-              className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs"
-              style={{ 
-                backgroundColor: tagWrapper.tags.color + '20', 
-                color: tagWrapper.tags.color 
-              }}
-            >
-              <Tag size={12} />
-              {tagWrapper.tags.name}
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="flex justify-between items-center text-sm" style={{ color: 'var(--text-muted)' }}>
-        <div className="flex items-center gap-1">
-          <Calendar size={14} />
-          <span>{formatDate(post.created_at)}</span>
-        </div>
+      <div className="flex flex-wrap gap-2 mb-4">
+        {/* Tags */}
+        {post.post_tags && post.post_tags.length > 0 && (
+          <>
+            {post.post_tags.map((tagWrapper, index) => (
+              <span
+                key={index}
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs"
+                style={{ 
+                  backgroundColor: tagWrapper.tags.color + '20', 
+                  color: tagWrapper.tags.color 
+                }}
+              >
+                <Tag size={12} />
+                {tagWrapper.tags.name}
+              </span>
+            ))}
+          </>
+        )}
+        
+        {/* Category */}
         {post.category && (
           <span className="bg-white/10 px-2 py-1 rounded-full text-xs">
             {post.category}
           </span>
         )}
       </div>
-      </GlassCard>
-    </Link>
+
+      <div className="flex justify-between items-center text-sm" style={{ color: 'var(--text-muted)' }}>
+        <div className="flex items-center gap-1">
+          <Calendar size={14} />
+          <span>{formatDate(post.created_at)}</span>
+        </div>
+        
+        {/* Add to Basket Button - Bigger */}
+        {!post.is_sold && (
+          <button
+            onClick={handleAddToBasket}
+            className="opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <ShoppingCart size={16} />
+            Add to Cart
+          </button>
+        )}
+      </div>
+        </GlassCard>
+      </Link>
   )
 }

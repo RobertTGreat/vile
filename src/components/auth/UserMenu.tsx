@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
 import GlassButton from '@/components/ui/GlassButton'
 import GlassCard from '@/components/ui/GlassCard'
-import { User as UserIcon, LogOut, Settings } from 'lucide-react'
+import { User as UserIcon, LogOut, Settings, FileText } from 'lucide-react'
+import Link from 'next/link'
 
 export default function UserMenu() {
   const [user, setUser] = useState<User | null>(null)
@@ -50,6 +51,17 @@ export default function UserMenu() {
       {isOpen && (
         <GlassCard className="absolute right-0 top-full mt-2 w-48 p-2">
           <div className="space-y-1">
+            <Link
+              href="/my-posts"
+              onClick={() => setIsOpen(false)}
+              className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
+            >
+              <FileText size={16} />
+              <span>My Posts</span>
+            </Link>
             <button
               onClick={() => setIsOpen(false)}
               className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors"

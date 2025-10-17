@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { BasketProvider } from "@/contexts/BasketContext";
+import { CreatePostProvider } from "@/contexts/CreatePostContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
         <ThemeProvider>
           <SearchProvider>
             <BasketProvider>
-              {children}
+              <CreatePostProvider>
+                {children}
+              </CreatePostProvider>
             </BasketProvider>
           </SearchProvider>
         </ThemeProvider>

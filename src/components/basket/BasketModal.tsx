@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useBasket } from '@/contexts/BasketContext'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
-import { X, ShoppingCart, Trash2, DollarSign } from 'lucide-react'
+import { X, ShoppingCart, Trash2, DollarSign, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 interface BasketModalProps {
@@ -28,125 +28,140 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <GlassCard className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-            <ShoppingCart size={24} />
-            Basket ({getItemCount()})
-          </h2>
-          <button
-            onClick={onClose}
-            className="transition-colors"
-            style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
-            onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {items.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-700/50 flex items-center justify-center">
-              <ShoppingCart size={24} style={{ color: 'var(--text-muted)' }} />
-            </div>
-            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-              Your basket is empty
-            </h3>
-            <p style={{ color: 'var(--text-muted)' }} className="mb-4">
-              Add some items to get started
-            </p>
-            <Link href="/search">
-              <GlassButton onClick={onClose}>
-                Browse Items
-              </GlassButton>
-            </Link>
+    <div className="fixed top-25 right-5 w-full sm:w-96 z-30">
+      <GlassCard 
+        className="rounded-l-2xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-4rem)]"
+      >
+          {/* Header */}
+          <div className="flex justify-between items-center p-4 border-b" style={{ borderColor: 'var(--border-glass)' }}>
+            <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+              <ShoppingCart size={18} />
+              <span>Cart</span>
+              {getItemCount() > 0 && (
+                <span className="text-xs font-normal px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--bg-glass)', color: 'var(--text-secondary)' }}>
+                  {getItemCount()}
+                </span>
+              )}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-white/10 transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <X size={18} />
+            </button>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {items.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center gap-4 p-4 rounded-lg"
-                style={{ backgroundColor: 'var(--bg-glass)' }}
-              >
-                <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                  {item.image_url ? (
-                    <img
-                      src={item.image_url}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gray-700/50 flex items-center justify-center">
-                      <ShoppingCart size={20} style={{ color: 'var(--text-muted)' }} />
-                    </div>
-                  )}
-                </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                    {item.title}
-                  </h3>
-                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    by {item.seller}
-                  </p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <DollarSign size={14} style={{ color: 'var(--text-primary)' }} />
-                    <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      {item.price.toFixed(2)}
-                    </span>
-                  </div>
+          {/* Content */}
+          <div className="overflow-y-auto p-4">
+            {items.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
+                  <ShoppingCart size={20} style={{ color: 'var(--text-muted)' }} />
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <Link href={`/post/${item.id}`}>
-                    <GlassButton size="sm" variant="secondary">
-                      View
-                    </GlassButton>
-                  </Link>
-                  <button
-                    onClick={() => removeFromBasket(item.id)}
-                    className="p-2 rounded-lg hover:bg-red-500/20 transition-colors"
-                    style={{ color: 'var(--text-muted)' }}
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+                <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  Your cart is empty
+                </h3>
+                <p style={{ color: 'var(--text-muted)' }} className="mb-6 text-sm">
+                  Add some items to get started
+                </p>
+                <Link href="/search">
+                  <GlassButton onClick={onClose} className="w-full">
+                    Browse Items
+                  </GlassButton>
+                </Link>
               </div>
-            ))}
+            ) : (
+              <div className="space-y-3">
+                {items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-3 p-3 rounded-xl"
+                    style={{ backgroundColor: 'var(--bg-glass)' }}
+                  >
+                    {/* Image */}
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                      {item.image_url ? (
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
+                          <ShoppingCart size={16} style={{ color: 'var(--text-muted)' }} />
+                        </div>
+                      )}
+                    </div>
 
-            <div className="border-t pt-4" style={{ borderColor: 'var(--border-glass)' }}>
+                    {/* Item Details */}
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-sm truncate mb-1" style={{ color: 'var(--text-primary)' }}>
+                        {item.title}
+                      </h3>
+                      <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                        by {item.seller}
+                      </p>
+                      <div className="flex items-center gap-1">
+                        <DollarSign size={12} style={{ color: 'var(--text-primary)' }} />
+                        <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                          {item.price.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-col gap-1">
+                      <Link href={`/post/${item.id}`}>
+                        <GlassButton size="sm" variant="secondary" className="p-1">
+                          <Eye size={12} />
+                        </GlassButton>
+                      </Link>
+                      <button
+                        onClick={() => removeFromBasket(item.id)}
+                        className="p-1 rounded-lg hover:bg-red-500/20 transition-colors"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          {items.length > 0 && (
+            <div className="border-t p-4" style={{ borderColor: 'var(--border-glass)' }}>
               <div className="flex justify-between items-center mb-4">
-                <span className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Total:
                 </span>
-                <span className="text-xl font-bold flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
-                  <DollarSign size={20} />
+                <span className="text-lg font-bold flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
+                  <DollarSign size={16} />
                   {getTotalPrice().toFixed(2)}
                 </span>
               </div>
 
-              <div className="flex gap-3">
-                <GlassButton
-                  variant="secondary"
-                  onClick={clearBasket}
-                  className="flex-1"
-                >
-                  Clear Basket
-                </GlassButton>
+              <div className="flex flex-col gap-2">
                 <GlassButton
                   onClick={handleCheckout}
                   disabled={isCheckingOut}
-                  className="flex-1"
+                  className="w-full"
                 >
                   {isCheckingOut ? 'Processing...' : 'Checkout'}
                 </GlassButton>
+                <GlassButton
+                  variant="secondary"
+                  onClick={clearBasket}
+                  className="w-full"
+                >
+                  Clear Cart
+                </GlassButton>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </GlassCard>
     </div>
   )

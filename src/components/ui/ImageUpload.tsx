@@ -4,6 +4,8 @@ import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
+import { storageService, UploadResult } from '@/lib/supabase-storage'
+import { createClient } from '@/lib/supabase-client'
 import GlassButton from './GlassButton'
 
 interface ImageUploadProps {
@@ -13,36 +15,30 @@ interface ImageUploadProps {
 }
 
 export default function ImageUpload({ onUploadComplete, maxFiles = 5, className = '' }: ImageUploadProps) {
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [uploadedImages, setUploadedImages] = useState<UploadResult[]>([])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const supabase = createClient()
 
-  const uploadToServer = async (files: File[]) => {
+  const uploadToSupabase = async (files: File[]) => {
     setIsUploading(true)
     setUploadProgress(0)
 
     try {
-      const formData = new FormData()
-      files.forEach((file, index) => {
-        formData.append(`file${index}`, file)
-      })
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
-      if (!response.ok) {
-        throw new Error('Upload failed')
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('User not authenticated')
       }
 
-      const result = await response.json()
-      const urls = result.urls || []
+      // Upload files to Supabase storage
+      const uploadResults = await storageService.uploadMultipleImages(files, user.id)
       
-      setUploadedImages(prev => [...prev, ...urls])
-      onUploadComplete([...uploadedImages, ...urls])
+      setUploadedImages(prev => [...prev, ...uploadResults])
+      onUploadComplete([...uploadedImages, ...uploadResults].map(result => result.url))
     } catch (error) {
       console.error('Upload error:', error)
+      alert('Upload failed: ' + (error as Error).message)
     } finally {
       setIsUploading(false)
       setUploadProgress(0)
@@ -76,7 +72,7 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
       )
 
       // Upload compressed files
-      await uploadToServer(compressedFiles)
+      await uploadToSupabase(compressedFiles)
     } catch (error) {
       console.error('Upload failed:', error)
     }
@@ -91,10 +87,21 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
     disabled: isUploading || uploadedImages.length >= maxFiles
   })
 
-  const removeImage = (index: number) => {
-    const newImages = uploadedImages.filter((_, i) => i !== index)
-    setUploadedImages(newImages)
-    onUploadComplete(newImages)
+  const removeImage = async (index: number) => {
+    const imageToRemove = uploadedImages[index]
+    
+    try {
+      // Delete from Supabase storage
+      await storageService.deleteImage(imageToRemove.path)
+      
+      // Update local state
+      const newImages = uploadedImages.filter((_, i) => i !== index)
+      setUploadedImages(newImages)
+      onUploadComplete(newImages.map(result => result.url))
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('Failed to delete image: ' + (error as Error).message)
+    }
   }
 
   return (
@@ -141,10 +148,10 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
 
       {uploadedImages.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {uploadedImages.map((url, index) => (
+          {uploadedImages.map((result, index) => (
             <div key={index} className="relative group">
               <img
-                src={url}
+                src={result.url}
                 alt={`Upload ${index + 1}`}
                 className="w-full h-32 object-cover rounded-lg"
               />
