@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Vile - Modern Marketplace",
+  title: "Repacked - Modern Marketplace",
   description: "A beautiful frosted glass resale marketplace",
 };
 

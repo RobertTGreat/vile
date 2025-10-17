@@ -1,4 +1,4 @@
-# Vile - Modern Marketplace
+# Repacked - Modern Marketplace
 
 A beautiful, modern resale marketplace built with Next.js, Supabase, and a stunning frosted glass UI design.
 
@@ -34,7 +34,7 @@ A beautiful, modern resale marketplace built with Next.js, Supabase, and a stunn
 
 ```bash
 git clone <your-repo-url>
-cd vile
+cd repacked
 npm install
 ```
 

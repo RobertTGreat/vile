@@ -24,7 +24,7 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8">
         <div className="text-center mb-12">
           <h1 className="text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            Vile
+            Repacked
           </h1>
           <p className="text-xl max-w-2xl mx-auto mb-8" style={{ color: 'var(--text-secondary)' }}>
             Buy and sell with style.

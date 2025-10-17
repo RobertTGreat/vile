@@ -26,7 +26,7 @@ export function BasketProvider({ children }: { children: ReactNode }) {
 
   // Load basket from localStorage on mount
   useEffect(() => {
-    const savedBasket = localStorage.getItem('vile-basket')
+    const savedBasket = localStorage.getItem('repacked-basket')
     if (savedBasket) {
       try {
         setItems(JSON.parse(savedBasket))
@@ -38,7 +38,7 @@ export function BasketProvider({ children }: { children: ReactNode }) {
 
   // Save basket to localStorage whenever items change
   useEffect(() => {
-    localStorage.setItem('vile-basket', JSON.stringify(items))
+    localStorage.setItem('repacked-basket', JSON.stringify(items))
   }, [items])
 
   const addToBasket = (item: BasketItem) => {

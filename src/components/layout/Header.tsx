@@ -66,7 +66,7 @@ export default function Header({ onAuth }: HeaderProps) {
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
                   <ShoppingBag size={24} style={{ color: 'var(--text-primary)' }} />
                 </div>
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Vile</h1>
+                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Repacked</h1>
               </Link>
             </div>
 
