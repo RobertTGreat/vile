@@ -24,6 +24,7 @@ interface Post {
   }
   post_tags: Array<{
     tags: {
+      id: string
       name: string
       color: string
     }

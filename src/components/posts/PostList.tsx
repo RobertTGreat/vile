@@ -14,14 +14,16 @@ interface Post {
   condition: string | null
   category: string | null
   location: string | null
+  image_urls: string[] | null
   created_at: string
   is_sold: boolean
   profiles: {
     username: string
     full_name: string
   }
-  tags: Array<{
+  post_tags: Array<{
     tags: {
+      id: string
       name: string
       color: string
     }

@@ -23,6 +23,7 @@ interface Post {
   is_sold: boolean
   post_tags: Array<{
     tags: {
+      id: string
       name: string
       color: string
     }
