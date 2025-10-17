@@ -1,6 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
 import Header from '@/components/layout/Header'
