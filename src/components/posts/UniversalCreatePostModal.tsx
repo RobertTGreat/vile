@@ -7,6 +7,7 @@ import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import GlassInput from '@/components/ui/GlassInput'
 import GlassTextarea from '@/components/ui/GlassTextarea'
+import GlassSelect from '@/components/ui/GlassSelect'
 import ImageUpload from '@/components/ui/ImageUpload'
 import { useCreatePost } from '@/contexts/CreatePostContext'
 import { X, Plus, XCircle } from 'lucide-react'
@@ -170,23 +171,20 @@ export default function UniversalCreatePostModal() {
               placeholder="0.00"
             />
 
-            <div>
-              <label className="block text-sm font-medium text-white/90 mb-2">
-                Condition
-              </label>
-              <select
-                value={condition}
-                onChange={(e) => setCondition(e.target.value)}
-                className="w-full px-4 py-3 backdrop-blur-md bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-400/50"
-              >
-                <option value="">Select condition</option>
-                <option value="new">New</option>
-                <option value="like_new">Like New</option>
-                <option value="good">Good</option>
-                <option value="fair">Fair</option>
-                <option value="poor">Poor</option>
-              </select>
-            </div>
+            <GlassSelect
+              label="Condition"
+              value={condition}
+              onChange={setCondition}
+              placeholder="Select condition"
+              options={[
+                { value: '', label: 'Any' },
+                { value: 'new', label: 'New' },
+                { value: 'like_new', label: 'Like New' },
+                { value: 'good', label: 'Good' },
+                { value: 'fair', label: 'Fair' },
+                { value: 'poor', label: 'Poor' }
+              ]}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
