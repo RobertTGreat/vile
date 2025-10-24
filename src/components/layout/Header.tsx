@@ -1,5 +1,23 @@
 'use client'
 
+/**
+ * Header Component
+ * 
+ * The main navigation header for the application. Features:
+ * - Responsive design with mobile navigation menu
+ * - User authentication status management
+ * - Search functionality
+ * - Shopping basket with item count
+ * - Create post functionality
+ * - Theme-aware glassmorphism styling
+ * 
+ * Mobile-specific features:
+ * - Hamburger menu that expands/collapses
+ * - Centered search bar on mobile
+ * - Create post button moved to mobile menu
+ * - Simplified action buttons (icon-only on mobile)
+ */
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
@@ -19,16 +37,29 @@ interface HeaderProps {
 }
 
 export default function Header({ onAuth }: HeaderProps) {
+  // User authentication state
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  
+  // Modal and menu states
   const [isBasketOpen, setIsBasketOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  // Context hooks for global state
   const { searchTerm, setSearchTerm } = useSearch()
   const { getItemCount } = useBasket()
   const { openModal: openCreatePost } = useCreatePost()
+  
+  // Next.js router for navigation
   const router = useRouter()
   const supabase = createClient()
 
+  /**
+   * Effect hook to manage user authentication state
+   * - Fetches current user on mount
+   * - Subscribes to auth state changes (login/logout)
+   * - Unsubscribes on unmount to prevent memory leaks
+   */
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -48,6 +79,10 @@ export default function Header({ onAuth }: HeaderProps) {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
+  /**
+   * Handle search form submission
+   * Navigates to search page with the current search term
+   */
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchTerm.trim()) {
@@ -159,11 +194,11 @@ export default function Header({ onAuth }: HeaderProps) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Only visible on mobile devices (md:hidden) */}
         {isMobileMenuOpen && (
           <div className="md:hidden border-t" style={{ borderColor: 'var(--border-glass)' }}>
             <div className="px-4 py-4 space-y-3">
-              {/* User Actions */}
+              {/* User Actions - Display when user is NOT logged in */}
               {!loading && !user && (
                 <div className="flex flex-col gap-3">
                   <div className="flex gap-3">
@@ -199,9 +234,10 @@ export default function Header({ onAuth }: HeaderProps) {
                 </div>
               )}
 
-              {/* User Links */}
+              {/* User Links - Display when user IS logged in */}
               {user && (
                 <div className="flex flex-col space-y-2">
+                  {/* Create Post button with icon */}
                   <GlassButton
                     onClick={() => {
                       openCreatePost()
@@ -212,6 +248,7 @@ export default function Header({ onAuth }: HeaderProps) {
                     <Plus size={18} className="mr-2" />
                     Create Post
                   </GlassButton>
+                  {/* Link to user's posts page */}
                   <Link href="/my-posts" onClick={() => setIsMobileMenuOpen(false)}>
                     <GlassButton variant="ghost" className="w-full justify-start">
                       My Posts
@@ -224,11 +261,13 @@ export default function Header({ onAuth }: HeaderProps) {
         )}
       </header>
 
+      {/* Shopping basket modal - displays items in user's cart */}
       <BasketModal 
         isOpen={isBasketOpen} 
         onClose={() => setIsBasketOpen(false)} 
       />
       
+      {/* Universal create post modal - can be opened from anywhere */}
       <UniversalCreatePostModal />
     </>
   )

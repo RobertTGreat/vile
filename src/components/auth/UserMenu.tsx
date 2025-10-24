@@ -1,5 +1,21 @@
 'use client'
 
+/**
+ * UserMenu Component
+ * 
+ * Dropdown menu for authenticated users. Displays user options and profile actions.
+ * 
+ * Features:
+ * - User profile display
+ * - Quick access to My Posts
+ * - Settings link
+ * - Sign out functionality
+ * - Dropdown menu with hover effects
+ * 
+ * Usage:
+ * <UserMenu />
+ */
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
@@ -9,10 +25,18 @@ import { User as UserIcon, LogOut, Settings, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 export default function UserMenu() {
+  // Current user state
   const [user, setUser] = useState<User | null>(null)
+  
+  // Menu visibility state
   const [isOpen, setIsOpen] = useState(false)
+  
   const supabase = createClient()
 
+  /**
+   * Effect to manage user authentication state
+   * Subscribes to auth changes and updates user state
+   */
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -30,11 +54,16 @@ export default function UserMenu() {
     return () => subscription.unsubscribe()
   }, [supabase.auth])
 
+  /**
+   * Handle user sign out
+   * Signs out current user and closes menu
+   */
   const handleSignOut = async () => {
     await supabase.auth.signOut()
     setIsOpen(false)
   }
 
+  // Don't render if no user is logged in
   if (!user) return null
 
   return (

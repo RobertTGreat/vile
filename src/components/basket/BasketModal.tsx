@@ -1,5 +1,26 @@
 'use client'
 
+/**
+ * BasketModal Component
+ * 
+ * Shopping cart modal that displays items added to the basket.
+ * Slide-out panel showing cart contents and checkout options.
+ * 
+ * Features:
+ * - Display basket items with thumbnails
+ * - Remove individual items
+ * - Clear entire cart
+ * - Calculate total price
+ * - Empty state with call-to-action
+ * - Checkout button (placeholder for future implementation)
+ * 
+ * Usage:
+ * <BasketModal
+ *   isOpen={isOpen}
+ *   onClose={() => setIsOpen(false)}
+ * />
+ */
+
 import { useState } from 'react'
 import { useBasket } from '@/contexts/BasketContext'
 import GlassCard from '@/components/ui/GlassCard'
@@ -8,16 +29,24 @@ import { X, ShoppingCart, Trash2, DollarSign, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 interface BasketModalProps {
-  isOpen: boolean
-  onClose: () => void
+  isOpen: boolean    // Controls modal visibility
+  onClose: () => void  // Close modal callback
 }
 
 export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
+  // Get basket state and methods from context
   const { items, removeFromBasket, clearBasket, getTotalPrice, getItemCount } = useBasket()
+  
+  // Checkout loading state
   const [isCheckingOut, setIsCheckingOut] = useState(false)
 
+  // Don't render if modal is closed
   if (!isOpen) return null
 
+  /**
+   * Handle checkout process
+   * Placeholder for future payment integration
+   */
   const handleCheckout = () => {
     setIsCheckingOut(true)
     // TODO: Implement checkout flow

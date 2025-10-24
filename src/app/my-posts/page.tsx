@@ -1,5 +1,25 @@
 'use client'
 
+/**
+ * My Posts Page Component
+ * 
+ * Page for authenticated users to manage their marketplace listings.
+ * Allows users to view, edit, and delete their posts.
+ * 
+ * Features:
+ * - View all user's posts
+ * - Edit post functionality
+ * - Delete post functionality
+ * - Sold status display
+ * - Post analytics display
+ * - Requires authentication
+ * 
+ * Layout:
+ * - Header with navigation
+ * - Grid of user's posts
+ * - Edit modal for updating posts
+ */
+
 import { useState, useEffect } from 'react'
 
 // Force dynamic rendering for this page
@@ -13,6 +33,9 @@ import EditPostModal from '@/components/posts/EditPostModal'
 import { Edit, Trash2, Eye, Calendar, DollarSign, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
+/**
+ * Post interface - represents a marketplace listing
+ */
 interface Post {
   id: string
   title: string
@@ -34,14 +57,24 @@ interface Post {
 }
 
 export default function MyPostsPage() {
+  // User state
   const [user, setUser] = useState<User | null>(null)
+  
+  // Posts state
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // Edit modal state
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  
   const supabase = createClient()
 
+  /**
+   * Effect to fetch user and their posts on mount
+   * Requires authentication to view posts
+   */
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()

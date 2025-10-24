@@ -1,5 +1,26 @@
 'use client'
 
+/**
+ * ImageUpload Component
+ * 
+ * Drag-and-drop image upload component with compression and Supabase storage integration.
+ * 
+ * Features:
+ * - Drag and drop file upload
+ * - Image compression before upload
+ * - Multiple file support
+ * - Progress indication
+ * - Image preview with delete option
+ * - Supabase storage integration
+ * - Maximum file size/limit enforcement
+ * 
+ * Usage:
+ * <ImageUpload
+ *   onUploadComplete={(urls) => console.log(urls)}
+ *   maxFiles={5}
+ * />
+ */
+
 import { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 import { Upload, X, Image as ImageIcon } from 'lucide-react'
@@ -9,17 +30,27 @@ import { createClient } from '@/lib/supabase-client'
 import GlassButton from './GlassButton'
 
 interface ImageUploadProps {
-  onUploadComplete: (urls: string[]) => void
-  maxFiles?: number
-  className?: string
+  onUploadComplete: (urls: string[]) => void  // Callback with uploaded image URLs
+  maxFiles?: number                             // Maximum number of files allowed
+  className?: string                            // Additional CSS classes
 }
 
 export default function ImageUpload({ onUploadComplete, maxFiles = 5, className = '' }: ImageUploadProps) {
+  // State for uploaded images
   const [uploadedImages, setUploadedImages] = useState<UploadResult[]>([])
+  
+  // Upload state
   const [isUploading, setIsUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  
   const supabase = createClient()
 
+  /**
+   * Upload files to Supabase storage
+   * Handles authentication and upload process
+   * 
+   * @param files - Array of File objects to upload
+   */
   const uploadToSupabase = async (files: File[]) => {
     setIsUploading(true)
     setUploadProgress(0)
@@ -45,6 +76,13 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
     }
   }
 
+  /**
+   * Compress image file before upload
+   * Reduces file size while maintaining acceptable quality
+   * 
+   * @param file - Image file to compress
+   * @returns Compressed File object
+   */
   const compressImage = async (file: File): Promise<File> => {
     const options = {
       maxSizeMB: 1, // Maximum file size in MB
@@ -62,6 +100,12 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
     }
   }
 
+  /**
+   * Handle file drop from dropzone
+   * Compresses images before uploading
+   * 
+   * @param acceptedFiles - Files accepted by dropzone
+   */
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return
 
@@ -78,6 +122,7 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
     }
   }, [uploadedImages])
 
+  // Configure dropzone with file acceptance and limits
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -87,6 +132,12 @@ export default function ImageUpload({ onUploadComplete, maxFiles = 5, className 
     disabled: isUploading || uploadedImages.length >= maxFiles
   })
 
+  /**
+   * Remove image from upload list
+   * Deletes from storage and updates state
+   * 
+   * @param index - Index of image to remove
+   */
   const removeImage = async (index: number) => {
     const imageToRemove = uploadedImages[index]
     

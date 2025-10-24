@@ -1,5 +1,25 @@
 'use client'
 
+/**
+ * SearchPostList Component
+ * 
+ * Displays search results with filtering and sorting.
+ * Used on the search page to show filtered marketplace items.
+ * 
+ * Features:
+ * - Integrates with SearchContext for search term
+ * - Category and condition filters
+ * - Multiple sort options
+ * - Collapsible filters on mobile
+ * - Responsive grid layout
+ * - Real-time search updates
+ * 
+ * Mobile features:
+ * - Collapsible filter menu with toggle button
+ * - Collapsible sort menu with current selection display
+ * - Optimized for small screens
+ */
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { useSearch } from '@/contexts/SearchContext'
@@ -7,6 +27,9 @@ import PostCard from './PostCard'
 import GlassButton from '@/components/ui/GlassButton'
 import { Plus, ChevronDown, ChevronUp, Filter } from 'lucide-react'
 
+/**
+ * Post interface - represents a marketplace listing
+ */
 interface Post {
   id: string
   title: string
@@ -32,22 +55,32 @@ interface Post {
 }
 
 interface SearchPostListProps {
-  onCreatePost: () => void
-  isAuthenticated: boolean
+  onCreatePost: () => void        // Callback for create post action
+  isAuthenticated: boolean        // Whether user is logged in
 }
 
 export default function SearchPostList({ onCreatePost, isAuthenticated }: SearchPostListProps) {
+  // Data state
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Filter state
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedCondition, setSelectedCondition] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  
+  // Mobile UI state
   const [showFilters, setShowFilters] = useState(false)
   const [showSort, setShowSort] = useState(false)
+  
+  // Get search term from global context
   const { searchTerm } = useSearch()
 
   const supabase = createClient()
 
+  /**
+   * Fetch posts on component mount
+   */
   useEffect(() => {
     fetchPosts()
   }, [])

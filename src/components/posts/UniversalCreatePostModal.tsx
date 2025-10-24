@@ -1,5 +1,25 @@
 'use client'
 
+/**
+ * UniversalCreatePostModal Component
+ * 
+ * Modal for creating new marketplace posts. Can be opened from anywhere in the app
+ * via the CreatePostContext. Fully self-contained with its own state management.
+ * 
+ * Features:
+ * - Form validation
+ * - Image upload with compression
+ * - Tag selection system
+ * - Custom dropdown for condition selection
+ * - Real-time error handling
+ * - Form reset on close
+ * - Auto-refresh on success
+ * 
+ * Usage:
+ * Controlled via CreatePostContext - no props needed
+ * Use openModal() from context to open
+ */
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
@@ -12,6 +32,9 @@ import ImageUpload from '@/components/ui/ImageUpload'
 import { useCreatePost } from '@/contexts/CreatePostContext'
 import { X, Plus, XCircle } from 'lucide-react'
 
+/**
+ * Tag interface for post tagging system
+ */
 interface Tag {
   id: string
   name: string
@@ -19,22 +42,37 @@ interface Tag {
 }
 
 export default function UniversalCreatePostModal() {
+  // Get modal state from context
   const { isOpen, closeModal } = useCreatePost()
+  
+  // User state
   const [user, setUser] = useState<User | null>(null)
+  
+  // Form state
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
   const [condition, setCondition] = useState('')
   const [category, setCategory] = useState('')
   const [location, setLocation] = useState('')
+  
+  // Tag state
   const [selectedTags, setSelectedTags] = useState<Tag[]>([])
   const [availableTags, setAvailableTags] = useState<Tag[]>([])
+  
+  // Image state
   const [imageUrls, setImageUrls] = useState<string[]>([])
+  
+  // UI state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const supabase = createClient()
 
+  /**
+   * Effect to fetch user and tags when modal opens
+   * Only runs when modal is opened to optimize performance
+   */
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
@@ -52,6 +90,12 @@ export default function UniversalCreatePostModal() {
     }
   }, [isOpen, supabase])
 
+  /**
+   * Handle form submission
+   * Creates new post in database with all associated data
+   * 
+   * @param e - Form submit event
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) return

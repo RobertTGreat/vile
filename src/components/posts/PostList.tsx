@@ -1,11 +1,34 @@
 'use client'
 
+/**
+ * PostList Component
+ * 
+ * Displays a list of marketplace posts with filtering and sorting capabilities.
+ * Used on search/browse pages for exploring all available items.
+ * 
+ * Features:
+ * - Search functionality
+ * - Category and condition filters
+ * - Multiple sort options
+ * - Collapsible filters on mobile
+ * - Create post button (when authenticated)
+ * - Responsive grid layout
+ * 
+ * Mobile features:
+ * - Collapsible filter menu
+ * - Collapsible sort menu
+ * - Hamburger-style UI
+ */
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import PostCard from './PostCard'
 import GlassButton from '@/components/ui/GlassButton'
 import { Search, Filter, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 
+/**
+ * Post interface - represents a marketplace listing
+ */
 interface Post {
   id: string
   title: string
@@ -31,22 +54,30 @@ interface Post {
 }
 
 interface PostListProps {
-  onCreatePost: () => void
-  isAuthenticated: boolean
+  onCreatePost: () => void        // Callback for create post action
+  isAuthenticated: boolean        // Whether user is logged in
 }
 
 export default function PostList({ onCreatePost, isAuthenticated }: PostListProps) {
+  // Data state
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  
+  // Filter state
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedCondition, setSelectedCondition] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  
+  // Mobile UI state
   const [showFilters, setShowFilters] = useState(false)
   const [showSort, setShowSort] = useState(false)
 
   const supabase = createClient()
 
+  /**
+   * Fetch posts on component mount
+   */
   useEffect(() => {
     fetchPosts()
   }, [])

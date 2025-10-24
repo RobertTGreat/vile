@@ -1,5 +1,29 @@
 'use client'
 
+/**
+ * AuthModal Component
+ * 
+ * Authentication modal for user sign in and sign up.
+ * Handles both registration and login functionality.
+ * 
+ * Features:
+ * - Dual mode: sign in or sign up
+ * - Form validation
+ * - Error handling
+ * - Loading states
+ * - Social auth placeholders (expandable)
+ * - Password requirements
+ * - Email confirmation flow
+ * 
+ * Usage:
+ * <AuthModal
+ *   isOpen={isOpen}
+ *   onClose={() => setIsOpen(false)}
+ *   mode="signin"
+ *   onModeChange={setMode}
+ * />
+ */
+
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import GlassCard from '@/components/ui/GlassCard'
@@ -8,22 +32,31 @@ import GlassInput from '@/components/ui/GlassInput'
 import { X, Mail, Lock, User } from 'lucide-react'
 
 interface AuthModalProps {
-  isOpen: boolean
-  onClose: () => void
-  mode: 'signin' | 'signup'
-  onModeChange: (mode: 'signin' | 'signup') => void
+  isOpen: boolean                    // Controls modal visibility
+  onClose: () => void                // Close modal callback
+  mode: 'signin' | 'signup'          // Current auth mode
+  onModeChange: (mode: 'signin' | 'signup') => void  // Switch mode callback
 }
 
 export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthModalProps) {
+  // Form state
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [username, setUsername] = useState('')
   const [fullName, setFullName] = useState('')
+  
+  // UI state
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const supabase = createClient()
 
+  /**
+   * Handle authentication form submission
+   * Handles both sign in and sign up flows
+   * 
+   * @param e - Form submit event
+   */
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -31,6 +64,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
 
     try {
       if (mode === 'signup') {
+        // User registration flow
         const { error } = await supabase.auth.signUp({
           email,
           password,
@@ -44,6 +78,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
         if (error) throw error
         alert('Check your email for the confirmation link!')
       } else {
+        // User login flow
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -58,6 +93,7 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
     }
   }
 
+  // Don't render if modal is closed
   if (!isOpen) return null
 
   return (

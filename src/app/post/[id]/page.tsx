@@ -1,5 +1,23 @@
 'use client'
 
+/**
+ * Post Detail Page Component
+ * 
+ * Dynamic route page displaying individual post details.
+ * Users can view post information, images, seller details, and add to basket.
+ * 
+ * Features:
+ * - Dynamic route using post ID
+ * - Image gallery with navigation
+ * - Add to basket functionality
+ * - Authentication modal for non-logged-in users
+ * - Post metadata display (price, condition, location, tags)
+ * - Seller information
+ * - Sold status display
+ * 
+ * Route: /post/[id]
+ */
+
 import { useState, useEffect } from 'react'
 
 // Force dynamic rendering for this page
@@ -14,6 +32,9 @@ import { MapPin, Calendar, Tag, DollarSign, UserIcon, ArrowLeft, ShoppingCart } 
 import Link from 'next/link'
 import { useBasket } from '@/contexts/BasketContext'
 
+/**
+ * Post interface - represents a marketplace listing
+ */
 interface Post {
   id: string
   title: string
@@ -39,14 +60,23 @@ interface Post {
 }
 
 export default function PostPage() {
+  // Get post ID from URL params
   const params = useParams()
   const postId = params.id as string
+  
+  // Post data state
   const [post, setPost] = useState<Post | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // Image gallery state
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  
+  // Auth modal state
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
+  
+  // Basket functionality
   const { addToBasket } = useBasket()
 
   const supabase = createClient()

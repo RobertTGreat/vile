@@ -1,19 +1,49 @@
+/**
+ * GlassInput Component
+ * 
+ * A styled input field component with glassmorphism effect.
+ * Used for form inputs throughout the application.
+ * 
+ * Features:
+ * - Optional label
+ * - Error message display
+ * - Glassmorphism styling
+ * - Ref forwarding for form libraries
+ * - Smooth transitions
+ * - Theme-aware styling
+ * 
+ * Usage:
+ * <GlassInput
+ *   label="Email"
+ *   type="email"
+ *   placeholder="Enter your email"
+ *   error={errors.email}
+ * />
+ */
+
 import { InputHTMLAttributes, forwardRef } from 'react'
 
 interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
+  label?: string    // Label text above input
+  error?: string    // Error message to display
 }
 
+/**
+ * GlassInput component with forwardRef for form libraries
+ * Supports all standard HTML input attributes
+ */
 const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
   ({ label, error, className = '', ...props }, ref) => {
     return (
       <div className="w-full">
+        {/* Optional label */}
         {label && (
           <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-secondary)' }}>
             {label}
           </label>
         )}
+        
+        {/* Input field */}
         <input
           ref={ref}
           className={`
@@ -24,6 +54,8 @@ const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
           `}
           {...props}
         />
+        
+        {/* Error message */}
         {error && (
           <p className="mt-1 text-sm text-red-400">{error}</p>
         )}

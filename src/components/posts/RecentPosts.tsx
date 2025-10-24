@@ -1,5 +1,22 @@
 'use client'
 
+/**
+ * RecentPosts Component
+ * 
+ * Displays the most recent marketplace posts on the home page.
+ * Shows up to 6 most recent posts in a grid layout.
+ * 
+ * Features:
+ * - Fetches and displays recent posts
+ * - Loading state handling
+ * - Empty state with call-to-action
+ * - Link to view all posts
+ * - Responsive grid layout
+ * 
+ * Usage:
+ * <RecentPosts />
+ */
+
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import PostCard from './PostCard'
@@ -7,6 +24,9 @@ import GlassButton from '@/components/ui/GlassButton'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
+/**
+ * Post interface - represents a marketplace listing
+ */
 interface Post {
   id: string
   title: string
@@ -32,14 +52,25 @@ interface Post {
 }
 
 export default function RecentPosts() {
+  // State for posts data
   const [posts, setPosts] = useState<Post[]>([])
+  
+  // Loading state
   const [loading, setLoading] = useState(true)
+  
   const supabase = createClient()
 
+  /**
+   * Fetch recent posts on component mount
+   */
   useEffect(() => {
     fetchRecentPosts()
   }, [])
 
+  /**
+   * Fetch recent posts from database
+   * Gets the 6 most recent posts ordered by creation date
+   */
   const fetchRecentPosts = async () => {
     try {
       const { data, error } = await supabase
