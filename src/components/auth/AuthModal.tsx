@@ -133,16 +133,33 @@ export default function AuthModal({ isOpen, onClose, mode, onModeChange }: AuthM
           </GlassButton>
         </form>
 
-        <div className="mt-6 text-center">
-          <p style={{ color: 'var(--text-muted)' }}>
-            {mode === 'signin' ? "Don't have an account?" : 'Already have an account?'}
-          </p>
-          <button
-            onClick={() => onModeChange(mode === 'signin' ? 'signup' : 'signin')}
-            className="text-purple-400 hover:text-purple-300 transition-colors font-medium"
-          >
-            {mode === 'signin' ? 'Sign Up' : 'Sign In'}
-          </button>
+        <div className="mt-6">
+          {mode === 'signin' ? (
+            <div className="space-y-3">
+              <p className="text-center" style={{ color: 'var(--text-muted)' }}>
+                Don't have an account?
+              </p>
+              <GlassButton
+                onClick={() => onModeChange('signup')}
+                className="w-full"
+                variant="secondary"
+              >
+                Get Started
+              </GlassButton>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p style={{ color: 'var(--text-muted)' }}>
+                Already have an account?
+              </p>
+              <button
+                onClick={() => onModeChange('signin')}
+                className="text-purple-400 hover:text-purple-300 transition-colors font-medium"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
         </div>
       </GlassCard>
     </div>

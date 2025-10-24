@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import PostCard from './PostCard'
 import GlassButton from '@/components/ui/GlassButton'
-import { Search, Filter, Plus } from 'lucide-react'
+import { Search, Filter, Plus, ChevronDown, ChevronUp } from 'lucide-react'
 
 interface Post {
   id: string
@@ -43,6 +43,7 @@ export default function PostList({ onCreatePost, isAuthenticated }: PostListProp
   const [selectedCondition, setSelectedCondition] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [showFilters, setShowFilters] = useState(false)
+  const [showSort, setShowSort] = useState(false)
 
   const supabase = createClient()
 
@@ -163,8 +164,20 @@ export default function PostList({ onCreatePost, isAuthenticated }: PostListProp
             />
           </div>
 
+          {/* Mobile Filters Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="lg:hidden w-full flex items-center justify-between p-4 glass-card rounded-xl hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Filter size={20} style={{ color: 'var(--text-primary)' }} />
+              <span style={{ color: 'var(--text-primary)' }}>Filters</span>
+            </div>
+            {showFilters ? <ChevronUp size={20} style={{ color: 'var(--text-primary)' }} /> : <ChevronDown size={20} style={{ color: 'var(--text-primary)' }} />}
+          </button>
+
           {/* Filters */}
-          <div className="space-y-4 p-4 glass-card rounded-xl">
+          <div className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-4 p-4 glass-card rounded-xl`}>
             <div>
               <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
                 Category
@@ -225,25 +238,44 @@ export default function PostList({ onCreatePost, isAuthenticated }: PostListProp
                 ))}
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
-                Sort By
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {sortOptions.map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => setSortBy(option.value)}
-                    className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
-                      sortBy === option.value 
-                        ? 'bg-blue-500/20 border border-blue-400/30 text-blue-400' 
-                        : 'glass-button hover:bg-white/10'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+          </div>
+
+          {/* Mobile Sort Toggle */}
+          <button
+            onClick={() => setShowSort(!showSort)}
+            className="lg:hidden w-full flex items-center justify-between p-4 glass-card rounded-xl hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span style={{ color: 'var(--text-primary)' }}>Sort By</span>
+              <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                {sortOptions.find(opt => opt.value === sortBy)?.label}
+              </span>
+            </div>
+            {showSort ? <ChevronUp size={20} style={{ color: 'var(--text-primary)' }} /> : <ChevronDown size={20} style={{ color: 'var(--text-primary)' }} />}
+          </button>
+
+          {/* Sort Options */}
+          <div className={`${showSort ? 'block' : 'hidden'} lg:block space-y-4 p-4 glass-card rounded-xl`}>
+            <label className="hidden lg:block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
+              Sort By
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {sortOptions.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setSortBy(option.value)
+                    setShowSort(false)
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
+                    sortBy === option.value 
+                      ? 'bg-blue-500/20 border border-blue-400/30 text-blue-400' 
+                      : 'glass-button hover:bg-white/10'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>

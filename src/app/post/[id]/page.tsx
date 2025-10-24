@@ -9,7 +9,8 @@ import { createClient } from '@/lib/supabase-client'
 import Header from '@/components/layout/Header'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
-import { MapPin, Calendar, Tag, DollarSign, User, ArrowLeft, ShoppingCart } from 'lucide-react'
+import AuthModal from '@/components/auth/AuthModal'
+import { MapPin, Calendar, Tag, DollarSign, UserIcon, ArrowLeft, ShoppingCart } from 'lucide-react'
 import Link from 'next/link'
 import { useBasket } from '@/contexts/BasketContext'
 
@@ -44,9 +45,16 @@ export default function PostPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isAuthOpen, setIsAuthOpen] = useState(false)
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
   const { addToBasket } = useBasket()
 
   const supabase = createClient()
+
+  const handleAuth = (mode: 'signin' | 'signup') => {
+    setAuthMode(mode)
+    setIsAuthOpen(true)
+  }
 
   useEffect(() => {
     fetchPost()
@@ -90,12 +98,18 @@ export default function PostPage() {
   if (loading) {
     return (
       <div className="min-h-screen">
-        <Header onAuth={() => {}} />
+        <Header onAuth={handleAuth} />
         <main className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-64">
             <div style={{ color: 'var(--text-muted)' }}>Loading post...</div>
           </div>
         </main>
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          mode={authMode}
+          onModeChange={setAuthMode}
+        />
       </div>
     )
   }
@@ -103,7 +117,7 @@ export default function PostPage() {
   if (error || !post) {
     return (
       <div className="min-h-screen">
-        <Header onAuth={() => {}} />
+        <Header onAuth={handleAuth} />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
@@ -114,13 +128,19 @@ export default function PostPage() {
             </Link>
           </div>
         </main>
+        <AuthModal
+          isOpen={isAuthOpen}
+          onClose={() => setIsAuthOpen(false)}
+          mode={authMode}
+          onModeChange={setAuthMode}
+        />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen">
-      <Header onAuth={() => {}} />
+      <Header onAuth={handleAuth} />
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
@@ -192,7 +212,7 @@ export default function PostPage() {
 
                 <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
                   <div className="flex items-center gap-1">
-                    <User size={16} />
+                    <UserIcon size={16} />
                     <span>{post.profiles.username}</span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -277,6 +297,13 @@ export default function PostPage() {
           </div>
         </div>
       </main>
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        mode={authMode}
+        onModeChange={setAuthMode}
+      />
     </div>
   )
 }

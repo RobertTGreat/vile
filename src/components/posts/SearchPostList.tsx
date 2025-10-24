@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase-client'
 import { useSearch } from '@/contexts/SearchContext'
 import PostCard from './PostCard'
 import GlassButton from '@/components/ui/GlassButton'
-import { Plus } from 'lucide-react'
+import { Plus, ChevronDown, ChevronUp, Filter } from 'lucide-react'
 
 interface Post {
   id: string
@@ -42,6 +42,8 @@ export default function SearchPostList({ onCreatePost, isAuthenticated }: Search
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedCondition, setSelectedCondition] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  const [showFilters, setShowFilters] = useState(false)
+  const [showSort, setShowSort] = useState(false)
   const { searchTerm } = useSearch()
 
   const supabase = createClient()
@@ -145,67 +147,82 @@ export default function SearchPostList({ onCreatePost, isAuthenticated }: Search
       {/* Left Sidebar - Filters */}
       <div className="w-full lg:w-64 flex-shrink-0">
         <div className="lg:sticky lg:top-24 space-y-4">
-          {/* Category Filters */}
-          <div className="p-4 glass-card rounded-xl">
-            <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
-              Category
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCategory('')}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
-                  selectedCategory === '' 
-                    ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
-                    : 'glass-button hover:bg-white/10'
-                }`}
-              >
-                All
-              </button>
-              {categories.map(category => (
-                <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
-                  className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
-                    selectedCategory === category 
-                      ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
-                      : 'glass-button hover:bg-white/10'
-                  }`}
-                >
-                  {category}
-                </button>
-              ))}
+          {/* Mobile Filters Toggle */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="lg:hidden w-full flex items-center justify-between p-4 glass-card rounded-xl hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <Filter size={20} style={{ color: 'var(--text-primary)' }} />
+              <span style={{ color: 'var(--text-primary)' }}>Filters</span>
             </div>
-          </div>
+            {showFilters ? <ChevronUp size={20} style={{ color: 'var(--text-primary)' }} /> : <ChevronDown size={20} style={{ color: 'var(--text-primary)' }} />}
+          </button>
 
-          {/* Condition Filters */}
-          <div className="p-4 glass-card rounded-xl">
-            <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
-              Condition
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setSelectedCondition('')}
-                className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
-                  selectedCondition === '' 
-                    ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
-                    : 'glass-button hover:bg-white/10'
-                }`}
-              >
-                All
-              </button>
-              {conditions.map(condition => (
+          {/* Filters Container */}
+          <div className={`${showFilters ? 'block' : 'hidden'} lg:block space-y-4`}>
+            {/* Category Filters */}
+            <div className="p-4 glass-card rounded-xl">
+              <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
+                Category
+              </label>
+              <div className="flex flex-wrap gap-2">
                 <button
-                  key={condition}
-                  onClick={() => setSelectedCondition(condition)}
+                  onClick={() => setSelectedCategory('')}
                   className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
-                    selectedCondition === condition 
+                    selectedCategory === '' 
                       ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
                       : 'glass-button hover:bg-white/10'
                   }`}
                 >
-                  {condition.replace('_', ' ').toUpperCase()}
+                  All
                 </button>
-              ))}
+                {categories.map(category => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
+                      selectedCategory === category 
+                        ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
+                        : 'glass-button hover:bg-white/10'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Condition Filters */}
+            <div className="p-4 glass-card rounded-xl">
+              <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
+                Condition
+              </label>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setSelectedCondition('')}
+                  className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
+                    selectedCondition === '' 
+                      ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
+                      : 'glass-button hover:bg-white/10'
+                  }`}
+                >
+                  All
+                </button>
+                {conditions.map(condition => (
+                  <button
+                    key={condition}
+                    onClick={() => setSelectedCondition(condition)}
+                    className={`px-3 py-1.5 rounded-lg text-sm transition-all duration-200 ${
+                      selectedCondition === condition 
+                        ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
+                        : 'glass-button hover:bg-white/10'
+                    }`}
+                  >
+                    {condition.replace('_', ' ').toUpperCase()}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -215,24 +232,44 @@ export default function SearchPostList({ onCreatePost, isAuthenticated }: Search
       <div className="flex-1 space-y-6">
         {/* Sort Options and Create Post Button */}
         <div className="flex flex-col lg:flex-row gap-4">
-          <div className="flex-1">
-            <label className="block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
-              Sort By
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {sortOptions.map(option => (
-                <button
-                  key={option.value}
-                  onClick={() => setSortBy(option.value)}
-                  className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                    sortBy === option.value 
-                      ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
-                      : 'glass-button hover:bg-white/10'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+          <div className="flex-1 space-y-3">
+            {/* Mobile Sort Toggle */}
+            <button
+              onClick={() => setShowSort(!showSort)}
+              className="lg:hidden w-full flex items-center justify-between p-4 glass-card rounded-xl hover:bg-white/5 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <span style={{ color: 'var(--text-primary)' }}>Sort By</span>
+                <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                  {sortOptions.find(opt => opt.value === sortBy)?.label}
+                </span>
+              </div>
+              {showSort ? <ChevronUp size={20} style={{ color: 'var(--text-primary)' }} /> : <ChevronDown size={20} style={{ color: 'var(--text-primary)' }} />}
+            </button>
+
+            {/* Sort Options */}
+            <div className={`${showSort ? 'block' : 'hidden'} lg:block`}>
+              <label className="hidden lg:block text-sm font-medium mb-3" style={{ color: 'var(--text-secondary)' }}>
+                Sort By
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {sortOptions.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSortBy(option.value)
+                      setShowSort(false)
+                    }}
+                    className={`px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                      sortBy === option.value 
+                        ? 'bg-purple-500/20 border border-purple-400/30 text-purple-400' 
+                        : 'glass-button hover:bg-white/10'
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
