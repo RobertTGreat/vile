@@ -31,6 +31,7 @@ import UniversalCreatePostModal from '@/components/posts/UniversalCreatePostModa
 import { ShoppingBag, User as UserIcon, Search, ShoppingCart, Plus, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import ThemeSelector from '@/components/ui/ThemeSelector'
 
 interface HeaderProps {
   onAuth: (mode: 'signin' | 'signup') => void
@@ -152,6 +153,8 @@ export default function Header({ onAuth }: HeaderProps) {
 
             {/* Right: Actions */}
             <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
+              {/* Theme Switcher */}
+              <ThemeSelector />
               {/* Create Post Button - Icon Only */}
               <GlassButton
                 onClick={openCreatePost}
@@ -201,6 +204,8 @@ export default function Header({ onAuth }: HeaderProps) {
               {/* User Actions - Display when user is NOT logged in */}
               {!loading && !user && (
                 <div className="flex flex-col gap-3">
+                  {/* Theme Switcher */}
+                  <ThemeSelector />
                   <div className="flex gap-3">
                     <GlassButton
                       onClick={() => {
@@ -237,6 +242,8 @@ export default function Header({ onAuth }: HeaderProps) {
               {/* User Links - Display when user IS logged in */}
               {user && (
                 <div className="flex flex-col space-y-2">
+                  {/* Theme Switcher */}
+                  <ThemeSelector />
                   {/* Create Post button with icon */}
                   <GlassButton
                     onClick={() => {
