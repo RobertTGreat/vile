@@ -1,0 +1,191 @@
+import type { Metadata } from 'next'
+import { createClient } from '@/lib/supabase-server'
+
+/**
+ * Post Layout Component
+ * 
+ * Generates dynamic metadata for post pages to enable rich previews
+ * when sharing on social media platforms (Facebook, Twitter, LinkedIn, etc.)
+ * 
+ * Features:
+ * - Open Graph meta tags for Facebook, LinkedIn, etc.
+ * - Twitter Card meta tags
+ * - Dynamic post data fetching
+ * - Image, price, and description in preview
+ */
+
+interface Post {
+  id: string
+  title: string
+  description: string
+  price: number | null
+  condition: string | null
+  category: string | null
+  location: string | null
+  image_urls: string[] | null
+  created_at: string
+  is_sold: boolean
+  profiles: {
+    username: string
+    full_name: string
+  }
+  post_tags: Array<{
+    tags: {
+      id: string
+      name: string
+      color: string
+    }
+  }>
+}
+
+/**
+ * Get the base URL for absolute URLs
+ * Uses environment variable or defaults to localhost for development
+ */
+function getBaseUrl(): string {
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`
+  }
+  return 'http://localhost:3000'
+}
+
+/**
+ * Ensure image URL is absolute
+ * If the URL is already absolute, return it as-is
+ * Otherwise, prepend the base URL
+ */
+function getAbsoluteImageUrl(imageUrl: string | null | undefined): string | undefined {
+  if (!imageUrl) return undefined
+  
+  // If already absolute URL (starts with http:// or https://)
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl
+  }
+  
+  // If relative URL, make it absolute
+  const baseUrl = getBaseUrl()
+  return imageUrl.startsWith('/') ? `${baseUrl}${imageUrl}` : `${baseUrl}/${imageUrl}`
+}
+
+/**
+ * Generate metadata for a post page
+ * This function is called by Next.js to generate meta tags for SEO and social sharing
+ */
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const supabase = await createClient()
+  
+  try {
+    // Fetch post data
+    const { data: post, error } = await supabase
+      .from('posts')
+      .select(`
+        *,
+        user_id,
+        profiles!user_id (username, full_name, id),
+        post_tags (
+          tags (name, color)
+        )
+      `)
+      .eq('id', params.id)
+      .single()
+
+    if (error || !post) {
+      // Return default metadata if post not found
+      return {
+        title: 'Post Not Found | Repacked',
+        description: 'The post you are looking for could not be found.',
+      }
+    }
+
+    const typedPost = post as unknown as Post
+    const baseUrl = getBaseUrl()
+    const postUrl = `${baseUrl}/post/${params.id}`
+    
+    // Get the first image URL (absolute)
+    const imageUrl = typedPost.image_urls && typedPost.image_urls.length > 0
+      ? getAbsoluteImageUrl(typedPost.image_urls[0])
+      : undefined
+
+    // Build description with price and details
+    let description = typedPost.description || ''
+    if (typedPost.price) {
+      description = `$${typedPost.price.toFixed(2)} - ${description}`
+    }
+    
+    // Add condition if available
+    if (typedPost.condition) {
+      const conditionText = typedPost.condition.replace('_', ' ').toLowerCase()
+      description += ` | Condition: ${conditionText}`
+    }
+    
+    // Add location if available
+    if (typedPost.location) {
+      description += ` | Location: ${typedPost.location}`
+    }
+    
+    // Add sold status if applicable
+    if (typedPost.is_sold) {
+      description += ' | SOLD'
+    }
+    
+    // Truncate description if too long (Open Graph has limits)
+    const maxDescriptionLength = 200
+    if (description.length > maxDescriptionLength) {
+      description = description.substring(0, maxDescriptionLength - 3) + '...'
+    }
+
+    // Build metadata object
+    const metadata: Metadata = {
+      title: `${typedPost.title} | Repacked`,
+      description: description,
+      openGraph: {
+        title: typedPost.title,
+        description: description,
+        url: postUrl,
+        siteName: 'Repacked',
+        type: 'website',
+        images: imageUrl ? [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: typedPost.title,
+          }
+        ] : undefined,
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: typedPost.title,
+        description: description,
+        images: imageUrl ? [imageUrl] : undefined,
+      },
+      alternates: {
+        canonical: postUrl,
+      },
+    }
+
+    return metadata
+  } catch (error) {
+    console.error('Error generating metadata:', error)
+    // Return default metadata on error
+    return {
+      title: 'Post | Repacked',
+      description: 'View this post on Repacked marketplace.',
+    }
+  }
+}
+
+/**
+ * Layout component - just passes children through
+ * The metadata is generated by generateMetadata function above
+ */
+export default function PostLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return <>{children}</>
+}

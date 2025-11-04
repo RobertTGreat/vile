@@ -39,8 +39,8 @@ const geistMono = Geist_Mono({
 
 // Metadata for SEO and browser display
 export const metadata: Metadata = {
-  title: "Repacked - Modern Marketplace",
-  description: "A beautiful frosted glass resale marketplace",
+  title: "Repacked",
+  description: "Second Hand Marketplace",
 };
 
 /**
