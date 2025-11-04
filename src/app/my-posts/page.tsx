@@ -30,7 +30,8 @@ import Header from '@/components/layout/Header'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import EditPostModal from '@/components/posts/EditPostModal'
-import { Edit, Trash2, Eye, Calendar, DollarSign, MapPin } from 'lucide-react'
+import ProfileEditModal from '@/components/auth/ProfileEditModal'
+import { Edit, Trash2, Eye, Calendar, DollarSign, MapPin, UserCircle } from 'lucide-react'
 import Link from 'next/link'
 
 /**
@@ -59,7 +60,7 @@ interface Post {
 export default function MyPostsPage() {
   // User state
   const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<{ username: string | null; full_name: string | null } | null>(null)
+  const [profile, setProfile] = useState<{ username: string | null; full_name: string | null; avatar_url: string | null } | null>(null)
   
   // Posts state
   const [posts, setPosts] = useState<Post[]>([])
@@ -69,6 +70,7 @@ export default function MyPostsPage() {
   // Edit modal state
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false)
   
   const supabase = createClient()
 
@@ -96,12 +98,16 @@ export default function MyPostsPage() {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('username, full_name')
+        .select('username, full_name, avatar_url')
         .eq('id', userId)
         .single()
 
       if (error) throw error
-      setProfile({ username: data?.username ?? null, full_name: data?.full_name ?? null })
+      setProfile({ 
+        username: data?.username ?? null, 
+        full_name: data?.full_name ?? null,
+        avatar_url: data?.avatar_url ?? null
+      })
     } catch (error: any) {
       // Non-blocking: keep page usable without profile
       console.error('Failed to load profile', error)
@@ -162,6 +168,12 @@ export default function MyPostsPage() {
     }
   }
 
+  const handleProfileUpdated = async () => {
+    if (user) {
+      await fetchUserProfile(user.id)
+    }
+  }
+
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price not specified'
     return new Intl.NumberFormat('en-US', {
@@ -219,9 +231,9 @@ export default function MyPostsPage() {
         <div className="mb-10">
           <GlassCard className="p-6">
             <div className="flex items-start md:items-center gap-4 md:gap-6 flex-col md:flex-row">
-              <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+              <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 border-white/20">
                 <img
-                  src="/defaultPFP.png"
+                  src={profile?.avatar_url || '/defaultPFP.png'}
                   alt="Profile picture"
                   className="w-full h-full object-cover"
                 />
@@ -238,13 +250,23 @@ export default function MyPostsPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-6 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    <div>
-                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.length}</span> Posts
+                  <div className="flex items-center gap-4">
+                    <div className="flex gap-6 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                      <div>
+                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.length}</span> Posts
+                      </div>
+                      <div>
+                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.filter(p => p.is_sold).length}</span> Sold
+                      </div>
                     </div>
-                    <div>
-                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.filter(p => p.is_sold).length}</span> Sold
-                    </div>
+                    <GlassButton
+                      variant="secondary"
+                      onClick={() => setIsProfileEditOpen(true)}
+                      className="flex items-center gap-2"
+                    >
+                      <UserCircle size={16} />
+                      Edit Profile
+                    </GlassButton>
                   </div>
                 </div>
               </div>
@@ -395,6 +417,12 @@ export default function MyPostsPage() {
           setEditingPost(null)
         }}
         onPostUpdated={handlePostUpdated}
+      />
+
+      <ProfileEditModal
+        isOpen={isProfileEditOpen}
+        onClose={() => setIsProfileEditOpen(false)}
+        onProfileUpdated={handleProfileUpdated}
       />
     </div>
   )
