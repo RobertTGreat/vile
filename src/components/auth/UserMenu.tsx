@@ -20,9 +20,9 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
 import GlassButton from '@/components/ui/GlassButton'
-import GlassCard from '@/components/ui/GlassCard'
-import { User as UserIcon, LogOut, Settings, FileText } from 'lucide-react'
+import { User as UserIcon, LogOut, Settings, FileText, Plus } from 'lucide-react'
 import Link from 'next/link'
+import { useCreatePost } from '@/contexts/CreatePostContext'
 
 export default function UserMenu() {
   // Current user state
@@ -30,6 +30,9 @@ export default function UserMenu() {
   
   // Menu visibility state
   const [isOpen, setIsOpen] = useState(false)
+  
+  // Create post context
+  const { openModal: openCreatePost } = useCreatePost()
   
   const supabase = createClient()
 
@@ -70,9 +73,9 @@ export default function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="glass-button px-3 py-1.5 hover:bg-white/15 transition-all duration-300 rounded-xl"
+        className="glass-button px-2 sm:px-3 py-1.5 hover:bg-white/15 transition-all duration-300 rounded-xl flex-shrink-0 max-w-[80px] sm:max-w-none"
       >
-        <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+        <span className="font-medium text-xs sm:text-sm truncate" style={{ color: 'var(--text-primary)' }}>
           {user.user_metadata?.username || user.email?.split('@')[0]}
         </span>
       </button>
@@ -84,8 +87,39 @@ export default function UserMenu() {
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <GlassCard className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl z-20">
+          <div
+            className="glass-card absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl z-20 overflow-hidden"
+            style={{
+              backdropFilter: 'blur(24px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+              backgroundColor: 'var(--bg-glass)',
+              borderColor: 'var(--border-glass)',
+              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+            }}
+          >
             <div className="p-2 space-y-1">
+              {/* Create Post Button */}
+              <button
+                onClick={() => {
+                  openCreatePost()
+                  setIsOpen(false)
+                }}
+                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-all group"
+                style={{ 
+                  color: 'rgb(196, 181, 253)',
+                  backgroundColor: 'rgba(139, 92, 246, 0.15)'
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139, 92, 246, 0.25)'
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139, 92, 246, 0.15)'
+                }}
+              >
+                <Plus size={16} style={{ color: 'rgb(196, 181, 253)' }} />
+                <span>Create Post</span>
+              </button>
+              
               <Link
                 href="/my-posts"
                 onClick={() => setIsOpen(false)}
@@ -137,7 +171,7 @@ export default function UserMenu() {
                 <span>Sign Out</span>
               </button>
             </div>
-          </GlassCard>
+          </div>
         </>
       )}
     </div>

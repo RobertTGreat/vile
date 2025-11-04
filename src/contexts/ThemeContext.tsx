@@ -52,9 +52,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedTheme) {
       setThemeState(savedTheme)
     } else {
-      // Check system preference for dark mode
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      setThemeState(prefersDark ? 'dark' : 'light')
+      // Default to dark mode
+      setThemeState('dark')
     }
   }, [])
 

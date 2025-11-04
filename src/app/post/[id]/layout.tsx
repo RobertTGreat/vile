@@ -74,8 +74,9 @@ function getAbsoluteImageUrl(imageUrl: string | null | undefined): string | unde
  * Generate metadata for a post page
  * This function is called by Next.js to generate meta tags for SEO and social sharing
  */
-export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const supabase = await createClient()
+  const { id } = await params
   
   try {
     // Fetch post data
@@ -89,7 +90,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
           tags (name, color)
         )
       `)
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (error || !post) {
@@ -102,7 +103,7 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
     const typedPost = post as unknown as Post
     const baseUrl = getBaseUrl()
-    const postUrl = `${baseUrl}/post/${params.id}`
+    const postUrl = `${baseUrl}/post/${id}`
     
     // Get the first image URL (absolute)
     const imageUrl = typedPost.image_urls && typedPost.image_urls.length > 0

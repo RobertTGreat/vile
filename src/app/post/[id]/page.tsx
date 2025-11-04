@@ -228,11 +228,17 @@ export default function PostPage() {
           <div className="space-y-4">
             {post.image_urls && post.image_urls.length > 0 ? (
               <>
-                <div className="aspect-square rounded-xl overflow-hidden">
+                <div className="aspect-video rounded-xl overflow-hidden relative">
+                  {/* Blurred background image */}
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center blur-xl scale-110"
+                    style={{ backgroundImage: `url(${post.image_urls[selectedImageIndex]})` }}
+                  />
+                  {/* Main image with fit */}
                   <img
                     src={post.image_urls[selectedImageIndex]}
                     alt={post.title}
-                    className="w-full h-full object-cover"
+                    className="relative w-full h-full object-contain z-10"
                   />
                 </div>
                 {post.image_urls.length > 1 && (
@@ -241,14 +247,20 @@ export default function PostPage() {
                       <button
                         key={index}
                         onClick={() => setSelectedImageIndex(index)}
-                        className={`aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                        className={`aspect-video rounded-lg overflow-hidden border-2 transition-all relative ${
                           selectedImageIndex === index ? 'border-purple-400' : 'border-transparent'
                         }`}
                       >
+                        {/* Blurred background image */}
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center blur-xl scale-110"
+                          style={{ backgroundImage: `url(${url})` }}
+                        />
+                        {/* Main image with fit */}
                         <img
                           src={url}
                           alt={`${post.title} ${index + 1}`}
-                          className="w-full h-full object-cover"
+                          className="relative w-full h-full object-contain z-10"
                         />
                       </button>
                     ))}
@@ -256,7 +268,7 @@ export default function PostPage() {
                 )}
               </>
             ) : (
-              <div className="aspect-square rounded-xl bg-gray-800/50 flex items-center justify-center">
+              <div className="aspect-video rounded-xl bg-gray-800/50 flex items-center justify-center">
                 <div className="text-center">
                   <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-700/50 flex items-center justify-center">
                     <Tag size={24} style={{ color: 'var(--text-muted)' }} />

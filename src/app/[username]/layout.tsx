@@ -57,14 +57,15 @@ function getAbsoluteImageUrl(imageUrl: string | null | undefined): string | unde
  * Generate metadata for a profile page
  * This function is called by Next.js to generate meta tags for SEO and social sharing
  */
-export async function generateMetadata({ params }: { params: { username: string } }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ username: string }> }): Promise<Metadata> {
   const supabase = await createClient()
+  const resolvedParams = await params
   
   try {
     // Extract username (remove @ symbol if present)
-    const username = params.username?.startsWith('@') 
-      ? params.username.slice(1) 
-      : params.username
+    const username = resolvedParams.username?.startsWith('@') 
+      ? resolvedParams.username.slice(1) 
+      : resolvedParams.username
 
     if (!username) {
       return {

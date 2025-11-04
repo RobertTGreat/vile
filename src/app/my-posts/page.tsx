@@ -316,11 +316,17 @@ export default function MyPostsPage() {
               <GlassCard key={post.id} className="p-6">
                 {/* Post Image */}
                 {post.image_urls && post.image_urls.length > 0 && (
-                  <div className="mb-4">
+                  <div className="mb-4 aspect-video rounded-lg overflow-hidden relative">
+                    {/* Blurred background image */}
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center blur-xl scale-110"
+                      style={{ backgroundImage: `url(${post.image_urls[0]})` }}
+                    />
+                    {/* Main image with fit */}
                     <img
                       src={post.image_urls[0]}
                       alt={post.title}
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="relative w-full h-full object-contain z-10"
                     />
                   </div>
                 )}

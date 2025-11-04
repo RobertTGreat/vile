@@ -32,8 +32,10 @@ import {
   EyeOff,
   CheckCircle,
   AlertCircle,
-  Save
+  Save,
+  Palette
 } from 'lucide-react'
+import ThemeSelector from '@/components/ui/ThemeSelector'
 import Link from 'next/link'
 
 /**
@@ -360,6 +362,30 @@ export default function SettingsPage() {
             Shipping
           </button>
         </div>
+
+        {/* Appearance Section */}
+        <GlassCard className="p-6 mb-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass-hover)' }}>
+              <Palette size={24} style={{ color: 'var(--text-primary)' }} />
+            </div>
+            <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
+              Appearance
+            </h2>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                Theme
+              </h3>
+              <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                Choose between light and dark mode
+              </p>
+            </div>
+            <ThemeSelector />
+          </div>
+        </GlassCard>
 
         {/* Account Section */}
         {activeSection === 'account' && (

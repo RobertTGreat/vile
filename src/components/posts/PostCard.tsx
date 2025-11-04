@@ -130,11 +130,17 @@ export default function PostCard({ post }: PostCardProps) {
       <Link href={`/post/${post.id}`} className="block">
         {/* Post Image - Shows first image if available */}
         {post.image_urls && post.image_urls.length > 0 && (
-          <div className="mb-4">
+          <div className="mb-4 aspect-video rounded-lg overflow-hidden relative">
+            {/* Blurred background image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center blur-xl scale-110"
+              style={{ backgroundImage: `url(${post.image_urls[0]})` }}
+            />
+            {/* Main image with fit */}
             <img
               src={post.image_urls[0]}
               alt={post.title}
-              className="w-full h-48 object-cover rounded-lg"
+              className="relative w-full h-full object-contain z-10"
             />
           </div>
         )}
@@ -154,26 +160,29 @@ export default function PostCard({ post }: PostCardProps) {
             </span>
           )}
         </div>
+      </Link>
 
-        {/* Seller username - clickable link to profile (outside main link) */}
-        <div className="mb-2">
-          {post.profiles.username ? (
-            <Link 
-              href={`/@${post.profiles.username}`}
-              className="text-sm hover:underline transition-colors block"
-              style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
-              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
-            >
-              by @{post.profiles.username}
-            </Link>
-          ) : (
-            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-              by {post.profiles.full_name}
-            </p>
-          )}
-        </div>
+      {/* Seller username - clickable link to profile (outside main link to avoid nested anchors) */}
+      <div className="mb-2">
+        {post.profiles.username ? (
+          <Link 
+            href={`/@${post.profiles.username}`}
+            className="text-sm hover:underline transition-colors block"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
+            onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
+          >
+            by @{post.profiles.username}
+          </Link>
+        ) : (
+          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+            by {post.profiles.full_name}
+          </p>
+        )}
+      </div>
 
+      {/* Rest of the card content */}
+      <Link href={`/post/${post.id}`} className="block">
         {/* Description - limited to 1 line */}
         {post.description && (
           <p className="mb-4 line-clamp-1" style={{ color: 'var(--text-secondary)' }}>

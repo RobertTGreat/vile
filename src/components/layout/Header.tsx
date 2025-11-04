@@ -12,10 +12,10 @@
  * - Theme-aware glassmorphism styling
  * 
  * Mobile-specific features:
- * - Hamburger menu that expands/collapses
+ * - Logo visible on all screen sizes
  * - Centered search bar on mobile
- * - Create post button moved to mobile menu
  * - Simplified action buttons (icon-only on mobile)
+ * - Create post button in profile dropdown
  */
 
 import { useState, useEffect } from 'react'
@@ -29,10 +29,9 @@ import { useCreatePost } from '@/contexts/CreatePostContext'
 import BasketModal from '@/components/basket/BasketModal'
 import UniversalCreatePostModal from '@/components/posts/UniversalCreatePostModal'
 import MessagePopup from '@/components/messages/MessagePopup'
-import { ShoppingBag, User as UserIcon, Search, ShoppingCart, Plus, Menu, X } from 'lucide-react'
+import { ShoppingBag, User as UserIcon, Search, ShoppingCart, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import ThemeSelector from '@/components/ui/ThemeSelector'
 
 interface HeaderProps {
   onAuth: (mode: 'signin' | 'signup') => void
@@ -43,9 +42,8 @@ export default function Header({ onAuth }: HeaderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   
-  // Modal and menu states
+  // Modal state
   const [isBasketOpen, setIsBasketOpen] = useState(false)
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   
   // Context hooks for global state
   const { searchTerm, setSearchTerm } = useSearch()
@@ -95,30 +93,21 @@ export default function Header({ onAuth }: HeaderProps) {
   return (
     <>
       <header className="sticky top-0 z-40 backdrop-blur-md border-b" style={{ backgroundColor: 'var(--bg-glass)', borderColor: 'var(--border-glass)' }}>
-        <div className="w-full px-4 py-4">
+        <div className="w-full px-3 sm:px-4 py-3 md:py-4">
           <div className="flex items-center justify-between w-full">
-            {/* Left: Logo and Mobile Menu */}
-            <div className="flex items-center space-x-3 flex-shrink-0">
-              {/* Mobile Menu Button */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg transition-colors hover:bg-white/10"
-                style={{ color: 'var(--text-primary)' }}
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              
-              <Link href="/" className="hidden md:flex items-center space-x-3 hover:opacity-80 transition-opacity">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
-                  <ShoppingBag size={24} style={{ color: 'var(--text-primary)' }} />
+            {/* Left: Logo */}
+            <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+              <Link href="/" className="flex items-center space-x-2 lg:space-x-3 hover:opacity-80 transition-opacity flex-shrink-0">
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
+                  <ShoppingBag size={20} className="lg:w-6 lg:h-6" style={{ color: 'var(--text-primary)' }} />
                 </div>
-                <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Repacked</h1>
+                <h1 className="hidden md:block text-xl lg:text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Repacked</h1>
               </Link>
             </div>
 
             {/* Center: Search Bar */}
             <div className="absolute left-1/2 transform -translate-x-1/2 sm:-translate-x-[40%] md:-translate-x-1/2 hidden sm:block">
-              <div className="w-64 sm:w-80 transition-all duration-300 focus-within:w-72 sm:focus-within:w-96">
+              <div className="w-56 sm:w-64 md:w-72 lg:w-80 transition-all duration-300 focus-within:w-64 sm:focus-within:w-72 md:focus-within:w-80 lg:focus-within:w-96">
                 <form onSubmit={handleSearchSubmit}>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 transition-all duration-300" size={20} style={{ color: 'var(--text-muted)' }} />
@@ -127,25 +116,25 @@ export default function Header({ onAuth }: HeaderProps) {
                       placeholder="Search posts..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-3 glass-input rounded-xl focus:outline-none transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/20"
+                      className="w-full pl-10 pr-4 py-2 md:py-3 glass-input rounded-xl focus:outline-none transition-all duration-300 focus:shadow-lg focus:shadow-purple-500/20 text-sm md:text-base"
                     />
                   </div>
                 </form>
               </div>
             </div>
 
-            {/* Mobile Search Bar - Centered */}
-            <div className="absolute left-1/2 transform -translate-x-1/2 sm:hidden">
-              <div className="w-[180px]">
+            {/* Mobile Search Bar - Always visible */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 sm:hidden z-10">
+              <div className="w-[200px] xs:w-[220px]">
                 <form onSubmit={handleSearchSubmit}>
                   <div className="relative">
-                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2" size={16} style={{ color: 'var(--text-muted)' }} />
+                    <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2" size={16} style={{ color: 'var(--text-muted)' }} />
                     <input
                       type="text"
                       placeholder="Search..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-8 pr-2 py-2 glass-input rounded-lg focus:outline-none text-sm"
+                      className="w-full pl-9 pr-3 py-2 glass-input rounded-lg focus:outline-none text-sm"
                     />
                   </div>
                 </form>
@@ -153,120 +142,41 @@ export default function Header({ onAuth }: HeaderProps) {
             </div>
 
             {/* Right: Actions */}
-            <div className="flex items-center space-x-2 md:space-x-4 flex-shrink-0">
-              {/* Theme Switcher */}
-              <ThemeSelector />
-              {/* Create Post Button - Icon Only */}
-              <GlassButton
-                onClick={openCreatePost}
-                className="hidden sm:flex p-2"
-                title="Create Post"
-              >
-                <Plus size={20} style={{ color: 'var(--text-primary)' }} />
-              </GlassButton>
-              
+            <div className="flex items-center space-x-1 sm:space-x-1.5 md:space-x-2 lg:space-x-4 flex-shrink-0">
               {/* Basket Button */}
               <button
                 onClick={() => setIsBasketOpen(true)}
-                className="relative p-2 rounded-lg transition-colors hover:bg-white/10"
+                className="relative p-1.5 md:p-2 rounded-lg transition-colors hover:bg-white/10 flex-shrink-0 mr-1 sm:mr-2 md:mr-3 lg:mr-5"
                 style={{ color: 'var(--text-primary)' }}
                 title="Basket"
               >
-                <ShoppingCart size={20} />
+                <ShoppingCart size={20} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
                 {getItemCount() > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-purple-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 bg-purple-500 text-white text-[10px] sm:text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center">
                     {getItemCount()}
                   </span>
                 )}
               </button>
               
               {loading ? (
-                <div className="w-8 h-8 bg-white/20 rounded-full animate-pulse" />
+                <div className="w-6 h-6 sm:w-7 md:w-8 bg-white/20 rounded-full animate-pulse flex-shrink-0" />
               ) : user ? (
-                <UserMenu />
+                <div className="flex-shrink-0">
+                  <UserMenu />
+                </div>
               ) : (
                 <GlassButton
                   variant="ghost"
                   onClick={() => onAuth('signin')}
-                  className="p-2"
+                  className="p-1.5 sm:p-1.5 md:p-2 flex-shrink-0"
                   title="Sign In"
                 >
-                  <UserIcon size={20} style={{ color: 'var(--text-primary)' }} />
+                  <UserIcon size={16} className="sm:w-[18px] sm:h-[18px] md:w-5 md:h-5" style={{ color: 'var(--text-primary)' }} />
                 </GlassButton>
               )}
             </div>
           </div>
         </div>
-
-        {/* Mobile Menu - Only visible on mobile devices (md:hidden) */}
-        {isMobileMenuOpen && (
-          <div className="md:hidden border-t" style={{ borderColor: 'var(--border-glass)' }}>
-            <div className="px-4 py-4 space-y-3">
-              {/* User Actions - Display when user is NOT logged in */}
-              {!loading && !user && (
-                <div className="flex flex-col gap-3">
-                  {/* Theme Switcher */}
-                  <ThemeSelector />
-                  <div className="flex gap-3">
-                    <GlassButton
-                      onClick={() => {
-                        onAuth('signin')
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="flex-1 justify-center"
-                    >
-                      Sign In
-                    </GlassButton>
-                    <GlassButton
-                      onClick={() => {
-                        openCreatePost()
-                        setIsMobileMenuOpen(false)
-                      }}
-                      className="flex-1 justify-center flex items-center gap-2"
-                    >
-                      <Plus size={18} />
-                      <span>Create Post</span>
-                    </GlassButton>
-                  </div>
-                  <GlassButton
-                    onClick={() => {
-                      onAuth('signup')
-                      setIsMobileMenuOpen(false)
-                    }}
-                    className="w-full justify-center"
-                  >
-                    Get Started
-                  </GlassButton>
-                </div>
-              )}
-
-              {/* User Links - Display when user IS logged in */}
-              {user && (
-                <div className="flex flex-col space-y-2">
-                  {/* Theme Switcher */}
-                  <ThemeSelector />
-                  {/* Create Post button with icon */}
-                  <GlassButton
-                    onClick={() => {
-                      openCreatePost()
-                      setIsMobileMenuOpen(false)
-                    }}
-                    className="w-full justify-center"
-                  >
-                    <Plus size={18} className="mr-2" />
-                    Create Post
-                  </GlassButton>
-                  {/* Link to user's profile page */}
-                  <Link href="/my-posts" onClick={() => setIsMobileMenuOpen(false)}>
-                    <GlassButton variant="ghost" className="w-full justify-start">
-                      Profile
-                    </GlassButton>
-                  </Link>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Shopping basket modal - displays items in user's cart */}
