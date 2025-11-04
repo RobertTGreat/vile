@@ -78,41 +78,67 @@ export default function UserMenu() {
       </button>
 
       {isOpen && (
-        <GlassCard className="absolute right-0 top-full mt-2 w-48 p-2">
-          <div className="space-y-1">
-            <Link
-              href="/my-posts"
-              onClick={() => setIsOpen(false)}
-              className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors"
-              style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
-              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
-            >
-              <FileText size={16} />
-              <span>Profile</span>
-            </Link>
-            <button
-              onClick={() => setIsOpen(false)}
-              className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors"
-              style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
-              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
-            >
-              <Settings size={16} />
-              <span>Settings</span>
-            </button>
-            <button
-              onClick={handleSignOut}
-              className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors"
-              style={{ color: 'var(--text-muted)' }}
-              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
-              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
-            >
-              <LogOut size={16} />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </GlassCard>
+        <>
+          {/* Backdrop to close menu when clicking outside */}
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setIsOpen(false)}
+          />
+          <GlassCard className="absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl z-20">
+            <div className="p-2 space-y-1">
+              <Link
+                href="/my-posts"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/10"
+                style={{ color: 'var(--text-muted)' }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--text-primary)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-glass-hover)'
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--text-muted)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                }}
+              >
+                <FileText size={16} />
+                <span>Profile</span>
+              </Link>
+              <Link
+                href="/settings"
+                onClick={() => setIsOpen(false)}
+                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/10"
+                style={{ color: 'var(--text-muted)' }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--text-primary)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-glass-hover)'
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--text-muted)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                }}
+              >
+                <Settings size={16} />
+                <span>Settings</span>
+              </Link>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/10"
+                style={{ color: 'var(--text-muted)' }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--text-primary)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-glass-hover)'
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLElement).style.color = 'var(--text-muted)'
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                }}
+              >
+                <LogOut size={16} />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </GlassCard>
+        </>
       )}
     </div>
   )

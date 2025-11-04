@@ -28,6 +28,7 @@ import { useBasket } from '@/contexts/BasketContext'
 import { useCreatePost } from '@/contexts/CreatePostContext'
 import BasketModal from '@/components/basket/BasketModal'
 import UniversalCreatePostModal from '@/components/posts/UniversalCreatePostModal'
+import MessagePopup from '@/components/messages/MessagePopup'
 import { ShoppingBag, User as UserIcon, Search, ShoppingCart, Plus, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -276,6 +277,9 @@ export default function Header({ onAuth }: HeaderProps) {
       
       {/* Universal create post modal - can be opened from anywhere */}
       <UniversalCreatePostModal />
+      
+      {/* Message popup - appears from bottom right */}
+      <MessagePopup />
     </>
   )
 }

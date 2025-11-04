@@ -28,9 +28,11 @@ import Header from '@/components/layout/Header'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import AuthModal from '@/components/auth/AuthModal'
-import { MapPin, Calendar, Tag, DollarSign, UserIcon, ArrowLeft, ShoppingCart } from 'lucide-react'
+import { MapPin, Calendar, Tag, DollarSign, UserIcon, ArrowLeft, ShoppingCart, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useBasket } from '@/contexts/BasketContext'
+import { useMessaging } from '@/contexts/MessagingContext'
+import { getOrCreateConversation } from '@/lib/messaging-utils'
 
 /**
  * Post interface - represents a marketplace listing
@@ -78,6 +80,9 @@ export default function PostPage() {
   
   // Basket functionality
   const { addToBasket } = useBasket()
+  
+  // Messaging functionality
+  const { openMessaging, selectConversation } = useMessaging()
 
   const supabase = createClient()
 
@@ -96,7 +101,8 @@ export default function PostPage() {
         .from('posts')
         .select(`
           *,
-          profiles!user_id (username, full_name),
+          user_id,
+          profiles!user_id (username, full_name, id),
           post_tags (
             tags (name, color)
           )
@@ -122,6 +128,43 @@ export default function PostPage() {
         image_url: post.image_urls?.[0] || '',
         seller: post.profiles.username
       })
+    }
+  }
+
+  /**
+   * Handle starting a conversation with the post seller
+   * Creates or finds existing conversation and opens messaging popup
+   */
+  const handleMessageSeller = async () => {
+    if (!post) return
+
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        // If not logged in, open auth modal
+        handleAuth('signin')
+        return
+      }
+
+      // Get post seller's user ID (from post.user_id or post.profiles.id)
+      const postUserId = (post as any).user_id || (post.profiles as any).id
+
+      // Don't allow messaging yourself
+      if (postUserId === user.id) {
+        alert('You cannot message yourself')
+        return
+      }
+
+      // Get or create conversation with post context
+      const conversationId = await getOrCreateConversation(user.id, postUserId, postId)
+      
+      // Open messaging and select conversation
+      openMessaging()
+      selectConversation(conversationId)
+    } catch (error) {
+      console.error('Error starting conversation:', error)
+      alert('Failed to start conversation. Please try again.')
     }
   }
 
@@ -226,10 +269,20 @@ export default function PostPage() {
 
           {/* Post Details */}
           <div className="space-y-6">
-            <GlassCard className="p-6">
+            <GlassCard className="p-6 relative">
+              {/* Message Seller Button - Top Right */}
+              <button
+                onClick={handleMessageSeller}
+                className="absolute top-4 right-4 p-2 rounded-lg transition-colors hover:bg-white/10"
+                style={{ color: 'var(--text-primary)' }}
+                title="Message Seller"
+              >
+                <MessageCircle size={20} />
+              </button>
+              
               <div className="space-y-4">
                 <div>
-                  <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
+                  <h1 className="text-3xl font-bold mb-2 pr-12" style={{ color: 'var(--text-primary)' }}>
                     {post.title}
                   </h1>
                   {post.price && (
@@ -307,6 +360,7 @@ export default function PostPage() {
                 )}
 
                 <div className="pt-4 border-t" style={{ borderColor: 'var(--border-glass)' }}>
+                  {/* Add to Basket Button */}
                   {post.is_sold ? (
                     <div className="text-center py-4">
                       <span className="text-red-400 font-semibold">This item has been sold</span>

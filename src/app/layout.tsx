@@ -9,6 +9,7 @@
  * - SearchProvider: Manages global search state
  * - BasketProvider: Manages shopping cart state
  * - CreatePostProvider: Manages create post modal state
+ * - MessagingProvider: Manages messaging popup state and unread counts
  * 
  * Note: This is a server component - all state management providers
  * are client components defined in their respective files.
@@ -21,6 +22,8 @@ import { ThemeProvider } from "@/contexts/ThemeContext";
 import { SearchProvider } from "@/contexts/SearchContext";
 import { BasketProvider } from "@/contexts/BasketContext";
 import { CreatePostProvider } from "@/contexts/CreatePostContext";
+import { MessagingProvider } from "@/contexts/MessagingContext";
+import FloatingMessageButton from "@/components/messages/FloatingMessageButton";
 
 // Configure Geist font family for sans-serif text
 const geistSans = Geist({
@@ -62,7 +65,11 @@ export default function RootLayout({
           <SearchProvider>
             <BasketProvider>
               <CreatePostProvider>
-                {children}
+                <MessagingProvider>
+                  {children}
+                  {/* Floating message button - bottom right */}
+                  <FloatingMessageButton />
+                </MessagingProvider>
               </CreatePostProvider>
             </BasketProvider>
           </SearchProvider>
