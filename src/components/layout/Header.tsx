@@ -255,10 +255,10 @@ export default function Header({ onAuth }: HeaderProps) {
                     <Plus size={18} className="mr-2" />
                     Create Post
                   </GlassButton>
-                  {/* Link to user's posts page */}
+                  {/* Link to user's profile page */}
                   <Link href="/my-posts" onClick={() => setIsMobileMenuOpen(false)}>
                     <GlassButton variant="ghost" className="w-full justify-start">
-                      My Posts
+                      Profile
                     </GlassButton>
                   </Link>
                 </div>

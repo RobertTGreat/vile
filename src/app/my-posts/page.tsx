@@ -59,6 +59,7 @@ interface Post {
 export default function MyPostsPage() {
   // User state
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<{ username: string | null; full_name: string | null } | null>(null)
   
   // Posts state
   const [posts, setPosts] = useState<Post[]>([])
@@ -81,7 +82,7 @@ export default function MyPostsPage() {
       setUser(user)
       
       if (user) {
-        await fetchUserPosts(user.id)
+        await Promise.all([fetchUserPosts(user.id), fetchUserProfile(user.id)])
       } else {
         setLoading(false)
       }
@@ -90,6 +91,22 @@ export default function MyPostsPage() {
     getUser()
   }, [supabase])
 
+
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('username, full_name')
+        .eq('id', userId)
+        .single()
+
+      if (error) throw error
+      setProfile({ username: data?.username ?? null, full_name: data?.full_name ?? null })
+    } catch (error: any) {
+      // Non-blocking: keep page usable without profile
+      console.error('Failed to load profile', error)
+    }
+  }
 
   const fetchUserPosts = async (userId: string) => {
     try {
@@ -191,17 +208,50 @@ export default function MyPostsPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-            My Posts
+            My Profile
           </h1>
           <p style={{ color: 'var(--text-secondary)' }}>
-            Manage your marketplace listings
+            View your info and manage your listings
           </p>
+        </div>
+
+        {/* Profile Header */}
+        <div className="mb-10">
+          <GlassCard className="p-6">
+            <div className="flex items-start md:items-center gap-4 md:gap-6 flex-col md:flex-row">
+              <div className="w-16 h-16 rounded-xl bg-white/10 flex items-center justify-center text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+                {(profile?.username || user.email?.[0] || 'U').toString().toUpperCase()}
+              </div>
+              <div className="flex-1">
+                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+                  <div>
+                    <div className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      {profile?.full_name || profile?.username || user.email}
+                    </div>
+                    {profile?.username && (
+                      <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                        @{profile.username}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-6 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                    <div>
+                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.length}</span> Posts
+                    </div>
+                    <div>
+                      <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.filter(p => p.is_sold).length}</span> Sold
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </GlassCard>
         </div>
 
         {loading ? (
           <div className="text-center py-12">
             <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p style={{ color: 'var(--text-muted)' }}>Loading your posts...</p>
+            <p style={{ color: 'var(--text-muted)' }}>Loading your profile...</p>
           </div>
         ) : error ? (
           <div className="text-center py-12">

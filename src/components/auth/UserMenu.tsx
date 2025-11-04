@@ -89,7 +89,7 @@ export default function UserMenu() {
               onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
             >
               <FileText size={16} />
-              <span>My Posts</span>
+              <span>Profile</span>
             </Link>
             <button
               onClick={() => setIsOpen(false)}
