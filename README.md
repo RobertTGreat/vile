@@ -2,7 +2,7 @@
 
 A beautiful, modern resale marketplace built with Next.js, Supabase, and a stunning frosted glass UI design.
 
-## Features eeeeee
+## Features
 
 - 🎨 **Frosted Glass UI**: Beautiful semi-transparent glass morphism design
 - 🔐 **Authentication**: Secure user authentication with Supabase Auth

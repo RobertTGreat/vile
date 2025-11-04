@@ -219,8 +219,12 @@ export default function MyPostsPage() {
         <div className="mb-10">
           <GlassCard className="p-6">
             <div className="flex items-start md:items-center gap-4 md:gap-6 flex-col md:flex-row">
-              <div className="w-16 h-16 rounded-xl bg-white/10 flex items-center justify-center text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                {(profile?.username || user.email?.[0] || 'U').toString().toUpperCase()}
+              <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0">
+                <img
+                  src="/defaultPFP.png"
+                  alt="Profile picture"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div className="flex-1">
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
