@@ -351,12 +351,32 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
-                {otherUser?.full_name || otherUser?.username || 'Unknown User'}
-              </h3>
-              <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
-                @{otherUser?.username || 'unknown'}
-              </p>
+              {otherUser?.username ? (
+                <Link
+                  href={`/@${otherUser.username}`}
+                  className="font-semibold truncate block hover:underline transition-colors"
+                  style={{ color: 'var(--text-primary)' }}
+                >
+                  {otherUser?.full_name || otherUser?.username || 'Unknown User'}
+                </Link>
+              ) : (
+                <h3 className="font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                  {otherUser?.full_name || otherUser?.username || 'Unknown User'}
+                </h3>
+              )}
+              {otherUser?.username ? (
+                <Link
+                  href={`/@${otherUser.username}`}
+                  className="text-xs truncate block hover:underline transition-colors"
+                  style={{ color: 'var(--text-muted)' }}
+                >
+                  @{otherUser.username}
+                </Link>
+              ) : (
+                <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
+                  @{otherUser?.username || 'unknown'}
+                </p>
+              )}
             </div>
           </div>
         </div>

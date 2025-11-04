@@ -294,10 +294,23 @@ export default function PostPage() {
                 </div>
 
                 <div className="flex items-center gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  <div className="flex items-center gap-1">
-                    <UserIcon size={16} />
-                    <span>{post.profiles.username}</span>
-                  </div>
+                  {post.profiles.username ? (
+                    <Link
+                      href={`/@${post.profiles.username}`}
+                      className="flex items-center gap-1 hover:underline transition-colors"
+                      style={{ color: 'var(--text-secondary)' }}
+                      onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
+                      onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-secondary)'}
+                    >
+                      <UserIcon size={16} />
+                      <span>@{post.profiles.username}</span>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-1">
+                      <UserIcon size={16} />
+                      <span>{post.profiles.full_name}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
                     <span>{new Date(post.created_at).toLocaleDateString()}</span>

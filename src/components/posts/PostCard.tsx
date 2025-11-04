@@ -125,9 +125,9 @@ export default function PostCard({ post }: PostCardProps) {
   }
 
   return (
-    <Link href={`/post/${post.id}`}>
-      {/* Main card container with hover scale effect */}
-      <GlassCard className="p-6 hover:scale-105 transition-transform duration-300 cursor-pointer relative group">
+    <GlassCard className="p-6 hover:scale-105 transition-transform duration-300 cursor-pointer relative group">
+      {/* Clickable area for post - wraps most of the card */}
+      <Link href={`/post/${post.id}`} className="block">
         {/* Post Image - Shows first image if available */}
         {post.image_urls && post.image_urls.length > 0 && (
           <div className="mb-4">
@@ -139,23 +139,38 @@ export default function PostCard({ post }: PostCardProps) {
           </div>
         )}
 
-        {/* Header section with title, seller, and sold badge */}
+        {/* Header section with title and sold badge */}
         <div className="flex justify-between items-start mb-4">
           <div className="flex-1">
             {/* Post title - limited to 2 lines with line-clamp */}
             <h3 className="text-xl font-bold mb-2 line-clamp-2" style={{ color: 'var(--text-primary)' }}>
               {post.title}
             </h3>
-            {/* Seller username */}
-            <p className="text-sm mb-2" style={{ color: 'var(--text-muted)' }}>
-              by {post.profiles.username || post.profiles.full_name}
-            </p>
           </div>
           {/* Sold badge - only shows if item is sold */}
           {post.is_sold && (
             <span className="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-sm font-medium border border-red-400/30">
               Sold
             </span>
+          )}
+        </div>
+
+        {/* Seller username - clickable link to profile (outside main link) */}
+        <div className="mb-2">
+          {post.profiles.username ? (
+            <Link 
+              href={`/@${post.profiles.username}`}
+              className="text-sm hover:underline transition-colors block"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
+            >
+              by @{post.profiles.username}
+            </Link>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              by {post.profiles.full_name}
+            </p>
           )}
         </div>
 
@@ -242,7 +257,7 @@ export default function PostCard({ post }: PostCardProps) {
             </button>
           )}
         </div>
-      </GlassCard>
-    </Link>
+      </Link>
+    </GlassCard>
   )
 }

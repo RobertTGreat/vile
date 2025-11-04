@@ -36,6 +36,32 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Rewrite /@username URLs to /username for profile pages
+  // This allows users to access profiles via /@username
+  const url = request.nextUrl.clone()
+  const pathname = url.pathname
+  
+  // Check if path starts with /@ (profile route)
+  // Exclude static routes like /settings, /search, /post, etc.
+  if (pathname.startsWith('/@') && 
+      !pathname.startsWith('/@/') && 
+      !pathname.match(/^\/(settings|search|post|my-posts|auth|api|_next)/)) {
+    // Extract username (remove leading @)
+    const username = pathname.slice(2) // Remove '/@'
+    
+    // Rewrite to /username route
+    url.pathname = `/${username}`
+    const rewrittenResponse = NextResponse.rewrite(url)
+    
+    // Copy cookies from supabaseResponse to rewrittenResponse
+    const cookies = supabaseResponse.cookies.getAll()
+    cookies.forEach((cookie) => {
+      rewrittenResponse.cookies.set(cookie.name, cookie.value, cookie)
+    })
+    
+    return rewrittenResponse
+  }
+
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
   // creating a new response object with NextResponse.next() make sure to:
   // 1. Pass the request in it, like so:

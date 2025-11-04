@@ -1,30 +1,24 @@
-'use client'
-
 /**
- * My Posts Page Component
+ * Public Profile Page Component
  * 
- * Page for authenticated users to manage their marketplace listings.
- * Allows users to view, edit, and delete their posts.
+ * Public profile page accessible via /@username for any user.
+ * Displays user profile information and their posts.
  * 
  * Features:
- * - View all user's posts
- * - Edit post functionality
- * - Delete post functionality
- * - Sold status display
- * - Post analytics display
- * - Requires authentication
+ * - View any user's profile (public)
+ * - View user's posts (read-only)
+ * - Edit/delete actions only shown to profile owner
+ * - Profile header with avatar, name, stats
+ * - Responsive design
  * 
- * Layout:
- * - Header with navigation
- * - Grid of user's posts
- * - Edit modal for updating posts
+ * Route: /[username] (handled via middleware rewrite from /@username)
+ * Example: /@john_doe or /john_doe
  */
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+'use client'
 
-// Force dynamic rendering for this page
-export const dynamic = 'force-dynamic'
+import { useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
 import Header from '@/components/layout/Header'
@@ -32,7 +26,7 @@ import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import EditPostModal from '@/components/posts/EditPostModal'
 import ProfileEditModal from '@/components/auth/ProfileEditModal'
-import { Edit, Trash2, Eye, Calendar, DollarSign, MapPin, UserCircle } from 'lucide-react'
+import { Edit, Trash2, Eye, Calendar, DollarSign, MapPin, UserCircle, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 /**
@@ -58,79 +52,120 @@ interface Post {
   }>
 }
 
-export default function MyPostsPage() {
+/**
+ * Profile interface
+ */
+interface Profile {
+  id: string
+  username: string | null
+  full_name: string | null
+  avatar_url: string | null
+}
+
+export default function PublicProfilePage() {
+  const params = useParams()
   const router = useRouter()
+  const supabase = createClient()
+
+  // Extract username from URL (remove @ symbol if present)
+  const usernameParam = params.username as string
+  const username = usernameParam?.startsWith('@') ? usernameParam.slice(1) : usernameParam
+
+  // Current user state (for ownership check)
+  const [currentUser, setCurrentUser] = useState<User | null>(null)
   
-  // User state
-  const [user, setUser] = useState<User | null>(null)
-  const [profile, setProfile] = useState<{ username: string | null; full_name: string | null; avatar_url: string | null } | null>(null)
+  // Profile state
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [profileError, setProfileError] = useState('')
   
   // Posts state
   const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [postsLoading, setPostsLoading] = useState(true)
+  const [postsError, setPostsError] = useState('')
   
   // Edit modal state
   const [editingPost, setEditingPost] = useState<Post | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isProfileEditOpen, setIsProfileEditOpen] = useState(false)
-  
-  const supabase = createClient()
 
   /**
-   * Effect to fetch user and their posts on mount
-   * Requires authentication to view posts
+   * Effect to fetch current user and profile data
    */
   useEffect(() => {
-    const getUser = async () => {
+    const fetchData = async () => {
+      // Fetch current user (for ownership check)
       const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      
-      if (user) {
-        // Fetch profile first to get username for redirect
-        await fetchUserProfile(user.id)
-        await fetchUserPosts(user.id)
-      } else {
-        setLoading(false)
-      }
+      setCurrentUser(user)
+
+      // Fetch profile by username
+      await fetchProfileByUsername()
     }
 
-    getUser()
-  }, [supabase])
+    fetchData()
+  }, [username, supabase])
 
   /**
-   * Effect to redirect to /@username if user has a username
+   * Effect to fetch posts when profile is loaded
    */
   useEffect(() => {
-    if (user && profile?.username) {
-      // Redirect to public profile page
-      router.push(`/@${profile.username}`)
+    if (profile?.id) {
+      fetchUserPosts(profile.id)
     }
-  }, [user, profile?.username, router])
+  }, [profile?.id])
 
-
-  const fetchUserProfile = async (userId: string) => {
+  /**
+   * Fetch profile by username
+   */
+  const fetchProfileByUsername = async () => {
     try {
+      setProfileLoading(true)
+      setProfileError('')
+
+      if (!username) {
+        setProfileError('Username is required')
+        setProfileLoading(false)
+        return
+      }
+
       const { data, error } = await supabase
         .from('profiles')
-        .select('username, full_name, avatar_url')
-        .eq('id', userId)
+        .select('id, username, full_name, avatar_url')
+        .ilike('username', username) // Case-insensitive search
         .single()
 
-      if (error) throw error
-      setProfile({ 
-        username: data?.username ?? null, 
-        full_name: data?.full_name ?? null,
-        avatar_url: data?.avatar_url ?? null
-      })
+      if (error) {
+        if (error.code === 'PGRST116') {
+          setProfileError('User not found')
+        } else {
+          throw error
+        }
+        setProfileLoading(false)
+        return
+      }
+
+      if (!data) {
+        setProfileError('User not found')
+        setProfileLoading(false)
+        return
+      }
+
+      setProfile(data)
     } catch (error: any) {
-      // Non-blocking: keep page usable without profile
-      console.error('Failed to load profile', error)
+      setProfileError(error.message || 'Failed to load profile')
+    } finally {
+      setProfileLoading(false)
     }
   }
 
+  /**
+   * Fetch user's posts
+   */
   const fetchUserPosts = async (userId: string) => {
     try {
+      setPostsLoading(true)
+      setPostsError('')
+
       const { data, error } = await supabase
         .from('posts')
         .select(`
@@ -148,13 +183,22 @@ export default function MyPostsPage() {
       if (error) throw error
       setPosts(data || [])
     } catch (error: any) {
-      setError(error.message)
+      setPostsError(error.message || 'Failed to load posts')
     } finally {
-      setLoading(false)
+      setPostsLoading(false)
     }
   }
 
+  /**
+   * Check if current user is viewing their own profile
+   */
+  const isOwnProfile = currentUser && profile && currentUser.id === profile.id
+
+  /**
+   * Handle delete post (only for own profile)
+   */
   const handleDeletePost = async (postId: string) => {
+    if (!isOwnProfile) return
     if (!confirm('Are you sure you want to delete this post?')) return
 
     try {
@@ -168,27 +212,38 @@ export default function MyPostsPage() {
       // Remove from local state
       setPosts(posts.filter(post => post.id !== postId))
     } catch (error: any) {
-      setError(error.message)
+      setPostsError(error.message || 'Failed to delete post')
     }
   }
 
+  /**
+   * Handle edit post (only for own profile)
+   */
   const handleEditPost = (post: Post) => {
+    if (!isOwnProfile) return
     setEditingPost(post)
     setIsEditModalOpen(true)
   }
 
+  /**
+   * Handle post updated callback
+   */
   const handlePostUpdated = async () => {
-    if (user) {
-      await fetchUserPosts(user.id)
+    if (profile?.id) {
+      await fetchUserPosts(profile.id)
     }
   }
 
+  /**
+   * Handle profile updated callback
+   */
   const handleProfileUpdated = async () => {
-    if (user) {
-      await fetchUserProfile(user.id)
-    }
+    await fetchProfileByUsername()
   }
 
+  /**
+   * Format price as currency
+   */
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price not specified'
     return new Intl.NumberFormat('en-US', {
@@ -197,6 +252,9 @@ export default function MyPostsPage() {
     }).format(price)
   }
 
+  /**
+   * Format date string
+   */
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -210,14 +268,30 @@ export default function MyPostsPage() {
     window.location.href = '/'
   }
 
-  if (!user) {
+  // Loading state
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen">
+        <Header onAuth={handleAuth} />
+        <main className="container mx-auto px-4 py-8">
+          <div className="text-center py-12">
+            <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p style={{ color: 'var(--text-muted)' }}>Loading profile...</p>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // Error state
+  if (profileError || !profile) {
     return (
       <div className="min-h-screen">
         <Header onAuth={handleAuth} />
         <main className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-              Please sign in to view your posts
+              {profileError || 'User not found'}
             </h1>
             <Link href="/">
               <GlassButton>Go Home</GlassButton>
@@ -233,13 +307,18 @@ export default function MyPostsPage() {
       <Header onAuth={handleAuth} />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
-            My Profile
-          </h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            View your info and manage your listings
-          </p>
+        {/* Back button */}
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 mb-4 text-sm transition-colors"
+            style={{ color: 'var(--text-muted)' }}
+            onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
+            onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
+          >
+            <ArrowLeft size={16} />
+            Back to Home
+          </Link>
         </div>
 
         {/* Profile Header */}
@@ -248,7 +327,7 @@ export default function MyPostsPage() {
             <div className="flex items-start md:items-center gap-4 md:gap-6 flex-col md:flex-row">
               <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 border-2 border-white/20">
                 <img
-                  src={profile?.avatar_url || '/defaultPFP.png'}
+                  src={profile.avatar_url || '/defaultPFP.png'}
                   alt="Profile picture"
                   className="w-full h-full object-cover"
                 />
@@ -257,9 +336,9 @@ export default function MyPostsPage() {
                 <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
                   <div>
                     <div className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      {profile?.full_name || profile?.username || user.email}
+                      {profile.full_name || profile.username || 'User'}
                     </div>
-                    {profile?.username && (
+                    {profile.username && (
                       <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
                         @{profile.username}
                       </div>
@@ -274,14 +353,16 @@ export default function MyPostsPage() {
                         <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{posts.filter(p => p.is_sold).length}</span> Sold
                       </div>
                     </div>
-                    <GlassButton
-                      variant="secondary"
-                      onClick={() => setIsProfileEditOpen(true)}
-                      className="flex items-center gap-2"
-                    >
-                      <UserCircle size={16} />
-                      Edit Profile
-                    </GlassButton>
+                    {isOwnProfile && (
+                      <GlassButton
+                        variant="secondary"
+                        onClick={() => setIsProfileEditOpen(true)}
+                        className="flex items-center gap-2"
+                      >
+                        <UserCircle size={16} />
+                        Edit Profile
+                      </GlassButton>
+                    )}
                   </div>
                 </div>
               </div>
@@ -289,26 +370,29 @@ export default function MyPostsPage() {
           </GlassCard>
         </div>
 
-        {loading ? (
+        {/* Posts Section */}
+        {postsLoading ? (
           <div className="text-center py-12">
             <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p style={{ color: 'var(--text-muted)' }}>Loading your profile...</p>
+            <p style={{ color: 'var(--text-muted)' }}>Loading posts...</p>
           </div>
-        ) : error ? (
+        ) : postsError ? (
           <div className="text-center py-12">
-            <div className="text-red-400 mb-4">{error}</div>
-            <GlassButton onClick={() => window.location.reload()}>
+            <div className="text-red-400 mb-4">{postsError}</div>
+            <GlassButton onClick={() => profile?.id && fetchUserPosts(profile.id)}>
               Try Again
             </GlassButton>
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-lg mb-4" style={{ color: 'var(--text-muted)' }}>
-              You haven't created any posts yet
+              {isOwnProfile ? "You haven't created any posts yet" : "No posts yet"}
             </div>
-            <Link href="/search">
-              <GlassButton>Create Your First Post</GlassButton>
-            </Link>
+            {isOwnProfile && (
+              <Link href="/search">
+                <GlassButton>Create Your First Post</GlassButton>
+              </Link>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -402,20 +486,24 @@ export default function MyPostsPage() {
                       View
                     </GlassButton>
                   </Link>
-                  <GlassButton
-                    variant="secondary"
-                    onClick={() => handleEditPost(post)}
-                    className="flex items-center justify-center gap-2 px-3"
-                  >
-                    <Edit size={16} />
-                  </GlassButton>
-                  <GlassButton
-                    variant="secondary"
-                    onClick={() => handleDeletePost(post.id)}
-                    className="flex items-center justify-center gap-2 px-3"
-                  >
-                    <Trash2 size={16} />
-                  </GlassButton>
+                  {isOwnProfile && (
+                    <>
+                      <GlassButton
+                        variant="secondary"
+                        onClick={() => handleEditPost(post)}
+                        className="flex items-center justify-center gap-2 px-3"
+                      >
+                        <Edit size={16} />
+                      </GlassButton>
+                      <GlassButton
+                        variant="secondary"
+                        onClick={() => handleDeletePost(post.id)}
+                        className="flex items-center justify-center gap-2 px-3"
+                      >
+                        <Trash2 size={16} />
+                      </GlassButton>
+                    </>
+                  )}
                 </div>
               </GlassCard>
             ))}
@@ -423,22 +511,27 @@ export default function MyPostsPage() {
         )}
       </main>
 
-      <EditPostModal
-        key={editingPost?.id || 'no-post'}
-        post={editingPost}
-        isOpen={isEditModalOpen}
-        onClose={() => {
-          setIsEditModalOpen(false)
-          setEditingPost(null)
-        }}
-        onPostUpdated={handlePostUpdated}
-      />
+      {/* Edit Post Modal - Only shown to profile owner */}
+      {isOwnProfile && (
+        <>
+          <EditPostModal
+            key={editingPost?.id || 'no-post'}
+            post={editingPost}
+            isOpen={isEditModalOpen}
+            onClose={() => {
+              setIsEditModalOpen(false)
+              setEditingPost(null)
+            }}
+            onPostUpdated={handlePostUpdated}
+          />
 
-      <ProfileEditModal
-        isOpen={isProfileEditOpen}
-        onClose={() => setIsProfileEditOpen(false)}
-        onProfileUpdated={handleProfileUpdated}
-      />
+          <ProfileEditModal
+            isOpen={isProfileEditOpen}
+            onClose={() => setIsProfileEditOpen(false)}
+            onProfileUpdated={handleProfileUpdated}
+          />
+        </>
+      )}
     </div>
   )
 }
