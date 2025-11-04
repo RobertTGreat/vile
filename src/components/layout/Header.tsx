@@ -145,7 +145,7 @@ export default function Header({ onAuth }: HeaderProps) {
             <div className="flex items-center space-x-1 sm:space-x-1.5 md:space-x-2 lg:space-x-4 flex-shrink-0">
               {/* Basket Button */}
               <button
-                onClick={() => setIsBasketOpen(true)}
+                onClick={() => setIsBasketOpen(!isBasketOpen)}
                 className="relative p-1.5 md:p-2 rounded-lg transition-colors hover:bg-white/10 flex-shrink-0 mr-1 sm:mr-2 md:mr-3 lg:mr-5"
                 style={{ color: 'var(--text-primary)' }}
                 title="Basket"
@@ -161,7 +161,7 @@ export default function Header({ onAuth }: HeaderProps) {
               {loading ? (
                 <div className="w-6 h-6 sm:w-7 md:w-8 bg-white/20 rounded-full animate-pulse flex-shrink-0" />
               ) : user ? (
-                <div className="flex-shrink-0">
+                <div className="flex-shrink-0 mr-1 sm:mr-2 md:mr-3 lg:mr-5">
                   <UserMenu />
                 </div>
               ) : (

@@ -23,6 +23,7 @@ interface GlassCardProps {
   children: ReactNode      // Card content
   className?: string       // Additional CSS classes
   onClick?: () => void     // Optional click handler
+  style?: React.CSSProperties // Optional inline styles
 }
 
 /**
@@ -30,7 +31,7 @@ interface GlassCardProps {
  * Renders a div with glassmorphism styling
  */
 const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
-  ({ children, className = '', onClick }, ref) => {
+  ({ children, className = '', onClick, style }, ref) => {
     return (
       <div
         ref={ref}
@@ -40,6 +41,7 @@ const GlassCard = forwardRef<HTMLDivElement, GlassCardProps>(
           ${className}
         `}
         onClick={onClick}
+        style={style}
       >
         {children}
       </div>

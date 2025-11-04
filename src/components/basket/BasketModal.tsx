@@ -57,12 +57,16 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
   }
 
   return (
-    <div className="fixed top-25 right-5 w-full sm:w-96 z-30">
-      <GlassCard 
-        className="rounded-l-2xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-4rem)]"
+    <div className="fixed top-[72px] right-5 w-full sm:w-96 z-30">
+      <GlassCard
+        className="rounded-l-2xl w-full flex flex-col overflow-hidden max-h-[calc(100vh-4rem)] backdrop-blur-md border"
+        style={{
+          backgroundColor: 'var(--bg-glass)',
+          borderColor: 'var(--border-glass)'
+        }}
       >
           {/* Header */}
-          <div className="flex justify-between items-center p-4 border-b" style={{ borderColor: 'var(--border-glass)' }}>
+          <div className="flex justify-between items-center p-4 border-b backdrop-blur-md" style={{ borderColor: 'var(--border-glass)', backgroundColor: 'var(--bg-glass)' }}>
             <h2 className="text-lg font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <ShoppingCart size={18} />
               <span>Cart</span>
@@ -85,7 +89,7 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
           <div className="overflow-y-auto p-4">
             {items.length === 0 ? (
               <div className="text-center py-8">
-                <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
+                <div className="w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center backdrop-blur-md border" style={{ backgroundColor: 'var(--bg-glass)', borderColor: 'var(--border-glass)' }}>
                   <ShoppingCart size={20} style={{ color: 'var(--text-muted)' }} />
                 </div>
                 <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
@@ -105,8 +109,8 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
                 {items.map((item) => (
                   <div
                     key={item.id}
-                    className="flex gap-3 p-3 rounded-xl"
-                    style={{ backgroundColor: 'var(--bg-glass)' }}
+                    className="flex gap-3 p-3 rounded-xl backdrop-blur-md border"
+                    style={{ backgroundColor: 'var(--bg-glass)', borderColor: 'var(--border-glass)' }}
                   >
                     {/* Image */}
                     <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
@@ -162,7 +166,7 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
 
           {/* Footer */}
           {items.length > 0 && (
-            <div className="border-t p-4" style={{ borderColor: 'var(--border-glass)' }}>
+            <div className="border-t p-4 backdrop-blur-md" style={{ borderColor: 'var(--border-glass)', backgroundColor: 'var(--bg-glass)' }}>
               <div className="flex justify-between items-center mb-4">
                 <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Total:

@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * My Posts Page Component
+ * Profile Page Component
  * 
  * Page for authenticated users to manage their marketplace listings.
  * Allows users to view, edit, and delete their posts.
@@ -21,7 +21,6 @@
  */
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic'
@@ -58,9 +57,7 @@ interface Post {
   }>
 }
 
-export default function MyPostsPage() {
-  const router = useRouter()
-  
+export default function ProfilePage() {
   // User state
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<{ username: string | null; full_name: string | null; avatar_url: string | null } | null>(null)
@@ -97,17 +94,6 @@ export default function MyPostsPage() {
 
     getUser()
   }, [supabase])
-
-  /**
-   * Effect to redirect to /@username if user has a username
-   */
-  useEffect(() => {
-    if (user && profile?.username) {
-      // Redirect to public profile page
-      router.push(`/@${profile.username}`)
-    }
-  }, [user, profile?.username, router])
-
 
   const fetchUserProfile = async (userId: string) => {
     try {
@@ -217,7 +203,7 @@ export default function MyPostsPage() {
         <main className="container mx-auto px-4 py-8">
           <div className="text-center py-12">
             <h1 className="text-2xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-              Please sign in to view your posts
+              Please sign in to view your profile
             </h1>
             <Link href="/">
               <GlassButton>Go Home</GlassButton>
@@ -448,3 +434,4 @@ export default function MyPostsPage() {
     </div>
   )
 }
+

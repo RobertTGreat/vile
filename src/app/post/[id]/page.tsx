@@ -22,8 +22,9 @@ import { useState, useEffect } from 'react'
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-client'
+import { useCachedPost } from '@/hooks/useCachedData'
 import Header from '@/components/layout/Header'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
@@ -65,59 +66,152 @@ export default function PostPage() {
   // Get post ID from URL params
   const params = useParams()
   const postId = params.id as string
-  
-  // Post data state
-  const [post, setPost] = useState<Post | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  
+
   // Image gallery state
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
-  
+
   // Auth modal state
   const [isAuthOpen, setIsAuthOpen] = useState(false)
   const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin')
-  
+
   // Basket functionality
   const { addToBasket } = useBasket()
-  
+
   // Messaging functionality
   const { openMessaging, selectConversation } = useMessaging()
 
+  // Use cached post hook
+  const { data: post, loading, error: cacheError, refetch: refetchPost } = useCachedPost(postId)
+
   const supabase = createClient()
+
+  // Router and search params for smart back navigation
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // State for back navigation
+  const [backDestination, setBackDestination] = useState<{ href: string; label: string }>({
+    href: '/search',
+    label: 'Back to Search'
+  })
+
+  // Determine back destination based on referrer or URL params
+  useEffect(() => {
+    const determineBackDestination = () => {
+      // Check URL parameters first
+      const from = searchParams.get('from')
+      const conversationId = searchParams.get('conversationId')
+
+      if (from === 'conversations' && conversationId) {
+        // Came from a conversation - go back to messaging
+        setBackDestination({
+          href: `/messages?conversation=${conversationId}`,
+          label: 'Back to Conversation'
+        })
+        return
+      }
+
+      if (from === 'profile') {
+        setBackDestination({
+          href: '/profile',
+          label: 'Back to Profile'
+        })
+        return
+      }
+
+      if (from === 'basket') {
+        setBackDestination({
+          href: '/basket',
+          label: 'Back to Basket'
+        })
+        return
+      }
+
+      // Check browser referrer
+      if (typeof window !== 'undefined' && document.referrer) {
+        const referrer = new URL(document.referrer)
+
+        // If came from the same domain
+        if (referrer.origin === window.location.origin) {
+          if (referrer.pathname.startsWith('/messages')) {
+            setBackDestination({
+              href: referrer.href,
+              label: 'Back to Conversation'
+            })
+            return
+          }
+
+          if (referrer.pathname === '/profile') {
+            setBackDestination({
+              href: '/profile',
+              label: 'Back to Profile'
+            })
+            return
+          }
+
+          if (referrer.pathname === '/basket') {
+            setBackDestination({
+              href: '/basket',
+              label: 'Back to Basket'
+            })
+            return
+          }
+
+          if (referrer.pathname === '/' || referrer.pathname.startsWith('/search')) {
+            setBackDestination({
+              href: referrer.href,
+              label: 'Back to Search'
+            })
+            return
+          }
+        }
+      }
+
+      // Default fallback
+      setBackDestination({
+        href: '/search',
+        label: 'Back to Search'
+      })
+    }
+
+    determineBackDestination()
+  }, [searchParams])
+
+  // Set up real-time subscription for cache invalidation (throttled)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
+    const postChannel = supabase
+      .channel(`post-${postId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE', // Only listen for updates, not all changes
+          schema: 'public',
+          table: 'posts',
+          filter: `id=eq.${postId}`,
+        },
+        () => {
+          // Throttle cache invalidation to prevent excessive re-fetches
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => {
+            refetchPost()
+          }, 500) // Wait 500ms before refetching to batch rapid updates
+        }
+      )
+      .subscribe()
+
+    return () => {
+      clearTimeout(timeoutId)
+      supabase.removeChannel(postChannel)
+    }
+  }, [postId, supabase, refetchPost])
 
   const handleAuth = (mode: 'signin' | 'signup') => {
     setAuthMode(mode)
     setIsAuthOpen(true)
   }
 
-  useEffect(() => {
-    fetchPost()
-  }, [postId])
-
-  const fetchPost = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          user_id,
-          profiles!user_id (username, full_name, id),
-          post_tags (
-            tags (name, color)
-          )
-        `)
-        .eq('id', postId)
-        .single()
-
-      if (error) throw error
-      setPost(data)
-    } catch (error: any) {
-      setError(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleAddToBasket = () => {
     if (post) {
@@ -187,7 +281,7 @@ export default function PostPage() {
     )
   }
 
-  if (error || !post) {
+  if (cacheError || !post) {
     return (
       <div className="min-h-screen">
         <Header onAuth={handleAuth} />
@@ -217,9 +311,9 @@ export default function PostPage() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="mb-6">
-          <Link href="/search" className="inline-flex items-center gap-2 text-sm" style={{ color: 'var(--text-muted)' }}>
+          <Link href={backDestination.href} className="inline-flex items-center gap-2 text-sm hover:opacity-80 transition-opacity" style={{ color: 'var(--text-muted)' }}>
             <ArrowLeft size={16} />
-            Back to Search
+            {backDestination.label}
           </Link>
         </div>
 
@@ -243,7 +337,7 @@ export default function PostPage() {
                 </div>
                 {post.image_urls.length > 1 && (
                   <div className="grid grid-cols-4 gap-2">
-                    {post.image_urls.map((url, index) => (
+                    {post.image_urls.map((url: string, index: number) => (
                       <button
                         key={index}
                         onClick={() => setSelectedImageIndex(index)}
@@ -367,7 +461,7 @@ export default function PostPage() {
                       Tags
                     </h3>
                     <div className="flex flex-wrap gap-2">
-                      {post.post_tags.map((tagWrapper, index) => (
+                      {post.post_tags.map((tagWrapper: { tags: { id: string; name: string; color: string } }, index: number) => (
                         <span
                           key={index}
                           className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm"

@@ -24,15 +24,18 @@ import GlassCard from '@/components/ui/GlassCard'
 import ConversationList from './ConversationList'
 import ChatWindow from './ChatWindow'
 import { useMessaging } from '@/contexts/MessagingContext'
-import { X } from 'lucide-react'
+import { X, ArrowLeft } from 'lucide-react'
 
 export default function MessagePopup() {
   // Get messaging state from context
-  const { isOpen, closeMessaging, selectedConversationId } = useMessaging()
-  
+  const { isOpen, closeMessaging, selectedConversationId, selectConversation } = useMessaging()
+
   // Current authenticated user state
   const [user, setUser] = useState<User | null>(null)
-  
+
+  // Selected conversation participant info
+  const [selectedUser, setSelectedUser] = useState<{ username: string; full_name: string | null } | null>(null)
+
   const supabase = createClient()
 
   /**
@@ -46,6 +49,52 @@ export default function MessagePopup() {
     }
     getUser()
   }, [supabase])
+
+  /**
+   * Effect hook to fetch selected conversation participant info
+   * Updates when selectedConversationId changes
+   */
+  useEffect(() => {
+    const fetchSelectedUser = async () => {
+      if (!selectedConversationId || !user) {
+        setSelectedUser(null)
+        return
+      }
+
+      try {
+        // Fetch conversation to get participant IDs
+        const { data: conversation, error: convError } = await supabase
+          .from('conversations')
+          .select('user1_id, user2_id')
+          .eq('id', selectedConversationId)
+          .single()
+
+        if (convError) throw convError
+
+        // Determine other participant's ID
+        const otherUserId = conversation.user1_id === user.id ? conversation.user2_id : conversation.user1_id
+
+        // Fetch other participant's profile
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('username, full_name')
+          .eq('id', otherUserId)
+          .single()
+
+        if (profileError) throw profileError
+
+        setSelectedUser({
+          username: profile.username,
+          full_name: profile.full_name
+        })
+      } catch (error) {
+        console.error('Error fetching selected user:', error)
+        setSelectedUser(null)
+      }
+    }
+
+    fetchSelectedUser()
+  }, [selectedConversationId, user, supabase])
 
   // Don't render if popup is closed
   if (!isOpen) return null
@@ -65,15 +114,30 @@ export default function MessagePopup() {
           opacity: isOpen ? 1 : 0,
         }}
       >
-        <GlassCard className="h-full flex flex-col overflow-hidden">
-          {/* Header with close button */}
-          <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--border-glass)' }}>
-            <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              Messages
-            </h2>
+        <GlassCard className="h-full flex flex-col overflow-hidden" style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}>
+          {/* Header with close/back button */}
+          <div className="flex items-center justify-between p-4 border-b backdrop-blur-md" style={{ borderColor: 'var(--border-glass)', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+            <div className="flex items-center gap-3 flex-1 min-w-0">
+              {selectedConversationId && (
+                <button
+                  onClick={() => selectConversation(null)}
+                  className="p-1 rounded-lg transition-colors hover:bg-white/10 flex-shrink-0"
+                  style={{ color: 'var(--text-primary)' }}
+                  aria-label="Back to conversations"
+                >
+                  <ArrowLeft size={20} />
+                </button>
+              )}
+              <h2 className="text-xl font-bold truncate" style={{ color: 'var(--text-primary)' }}>
+                {selectedConversationId && selectedUser
+                  ? (selectedUser.full_name || selectedUser.username)
+                  : 'Messages'
+                }
+              </h2>
+            </div>
             <button
               onClick={closeMessaging}
-              className="p-1 rounded-lg transition-colors hover:bg-white/10"
+              className="p-1 rounded-lg transition-colors hover:bg-white/10 flex-shrink-0"
               style={{ color: 'var(--text-muted)' }}
               onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
               onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}

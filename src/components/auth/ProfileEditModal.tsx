@@ -249,8 +249,8 @@ export default function ProfileEditModal({ isOpen, onClose, onProfileUpdated }: 
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <GlassCard className="w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-6">
+      <GlassCard className="w-full max-w-md p-6 max-h-[90vh] overflow-y-auto" style={{ backdropFilter: 'blur(24px) saturate(180%)', WebkitBackdropFilter: 'blur(24px) saturate(180%)' }}>
+        <div className="flex items-center justify-between p-4 -m-6 mb-6 border-b backdrop-blur-md" style={{ borderColor: 'var(--border-glass)', backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
           <h2 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
             Edit Profile
           </h2>

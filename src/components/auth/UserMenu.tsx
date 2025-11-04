@@ -16,7 +16,7 @@
  * <UserMenu />
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase-client'
 import { User } from '@supabase/supabase-js'
 import GlassButton from '@/components/ui/GlassButton'
@@ -30,6 +30,9 @@ export default function UserMenu() {
   
   // Menu visibility state
   const [isOpen, setIsOpen] = useState(false)
+  
+  // Ref for button position
+  const buttonRef = useRef<HTMLButtonElement>(null)
   
   // Create post context
   const { openModal: openCreatePost } = useCreatePost()
@@ -72,6 +75,7 @@ export default function UserMenu() {
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
         className="glass-button px-2 sm:px-3 py-1.5 hover:bg-white/15 transition-all duration-300 rounded-xl flex-shrink-0 max-w-[80px] sm:max-w-none"
       >
@@ -84,44 +88,65 @@ export default function UserMenu() {
         <>
           {/* Backdrop to close menu when clicking outside */}
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-10 bg-transparent"
             onClick={() => setIsOpen(false)}
           />
           <div
-            className="glass-card absolute right-0 top-full mt-2 w-48 rounded-xl shadow-xl z-20 overflow-hidden"
+            className="fixed top-[72px] right-5 w-48 rounded-xl shadow-xl z-50 overflow-hidden backdrop-blur-md border"
             style={{
-              backdropFilter: 'blur(24px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(180%)',
               backgroundColor: 'var(--bg-glass)',
               borderColor: 'var(--border-glass)',
-              boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)'
             }}
           >
             <div className="p-2 space-y-1">
-              {/* Create Post Button */}
-              <button
-                onClick={() => {
-                  openCreatePost()
-                  setIsOpen(false)
-                }}
-                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-all group"
-                style={{ 
-                  color: 'rgb(196, 181, 253)',
-                  backgroundColor: 'rgba(139, 92, 246, 0.15)'
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139, 92, 246, 0.25)'
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139, 92, 246, 0.15)'
-                }}
-              >
-                <Plus size={16} style={{ color: 'rgb(196, 181, 253)' }} />
-                <span>Create Post</span>
-              </button>
+              {/* Create Post and Settings - Icon only, side by side */}
+              <div className="flex gap-1 mb-1">
+                {/* Create Post Button */}
+                <button
+                  onClick={() => {
+                    openCreatePost()
+                    setIsOpen(false)
+                  }}
+                  className="flex-1 flex items-center justify-center p-2 rounded-lg transition-all group"
+                  style={{ 
+                    color: 'rgb(196, 181, 253)',
+                    backgroundColor: 'rgba(139, 92, 246, 0.15)'
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139, 92, 246, 0.25)'
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(139, 92, 246, 0.15)'
+                  }}
+                  title="Create Post"
+                >
+                  <Plus size={18} style={{ color: 'rgb(196, 181, 253)' }} />
+                </button>
+                
+                {/* Settings Link */}
+                <Link
+                  href="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="flex-1 flex items-center justify-center p-2 rounded-lg transition-colors hover:bg-white/10"
+                  style={{ color: 'var(--text-muted)' }}
+                  onMouseEnter={(e) => {
+                    (e.target as HTMLElement).style.color = 'var(--text-primary)'
+                    ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-glass-hover)'
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.target as HTMLElement).style.color = 'var(--text-muted)'
+                    ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                  }}
+                  title="Settings"
+                >
+                  <Settings size={18} />
+                </Link>
+              </div>
               
               <Link
-                href="/my-posts"
+                href="/profile"
                 onClick={() => setIsOpen(false)}
                 className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/10"
                 style={{ color: 'var(--text-muted)' }}
@@ -136,23 +161,6 @@ export default function UserMenu() {
               >
                 <FileText size={16} />
                 <span>Profile</span>
-              </Link>
-              <Link
-                href="/settings"
-                onClick={() => setIsOpen(false)}
-                className="w-full flex items-center space-x-2 px-3 py-2 rounded-lg transition-colors hover:bg-white/10"
-                style={{ color: 'var(--text-muted)' }}
-                onMouseEnter={(e) => {
-                  (e.target as HTMLElement).style.color = 'var(--text-primary)'
-                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'var(--bg-glass-hover)'
-                }}
-                onMouseLeave={(e) => {
-                  (e.target as HTMLElement).style.color = 'var(--text-muted)'
-                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-                }}
-              >
-                <Settings size={16} />
-                <span>Settings</span>
               </Link>
               <button
                 onClick={handleSignOut}

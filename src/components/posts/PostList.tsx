@@ -22,6 +22,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
+import { useCachedData } from '@/hooks/useCachedData'
 import PostCard from './PostCard'
 import GlassButton from '@/components/ui/GlassButton'
 import { Search, Filter, Plus, ChevronDown, ChevronUp } from 'lucide-react'
@@ -59,31 +60,25 @@ interface PostListProps {
 }
 
 export default function PostList({ onCreatePost, isAuthenticated }: PostListProps) {
-  // Data state
-  const [posts, setPosts] = useState<Post[]>([])
-  const [loading, setLoading] = useState(true)
-  
   // Filter state
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('')
   const [selectedCondition, setSelectedCondition] = useState('')
   const [sortBy, setSortBy] = useState('newest')
-  
+
   // Mobile UI state
   const [showFilters, setShowFilters] = useState(false)
   const [showSort, setShowSort] = useState(false)
 
   const supabase = createClient()
 
-  /**
-   * Fetch posts on component mount
-   */
-  useEffect(() => {
-    fetchPosts()
-  }, [])
+  // Create cache key based on filter parameters
+  const cacheKey = `postList:${searchTerm}:${selectedCategory}:${selectedCondition}:${sortBy}`
 
-  const fetchPosts = async () => {
-    try {
+  // Use cached data for post lists
+  const { data: posts = [], loading, refetch: refetchPosts } = useCachedData({
+    cacheKey,
+    fetcher: async () => {
       let query = supabase
         .from('posts')
         .select(`
@@ -131,34 +126,74 @@ export default function PostList({ onCreatePost, isAuthenticated }: PostListProp
 
       if (error) {
         // Check if it's a table doesn't exist error
-        if (error.message.includes('relation "posts" does not exist') || 
+        if (error.message.includes('relation "posts" does not exist') ||
             error.message.includes('relation') ||
             error.message.includes('does not exist')) {
           console.warn('Database tables not yet created. Please run the migration first.')
-          setPosts([])
-          return
+          return []
         }
         console.error('Database error:', error)
-        setPosts([])
-        return
+        return []
       }
-      setPosts(data || [])
-    } catch (error) {
-      console.error('Error fetching posts:', error)
-      // Set empty array on error to prevent crashes
-      setPosts([])
-    } finally {
-      setLoading(false)
-    }
-  }
+
+      return data || []
+    },
+    enabled: true,
+    cacheTime: 5 * 60 * 1000, // 5 minutes for post lists (shorter than individual posts)
+    persist: false // Don't persist post lists to sessionStorage
+  })
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
-      fetchPosts()
-    }, 300)
+      refetchPosts()
+    }, 200) // Reduced debounce time for faster response
 
     return () => clearTimeout(debounceTimer)
-  }, [searchTerm, selectedCategory, selectedCondition, sortBy])
+  }, [searchTerm, selectedCategory, selectedCondition, sortBy, refetchPosts])
+
+  // Set up real-time subscription for cache invalidation (throttled)
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout
+
+    const postsChannel = supabase
+      .channel('posts-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT', // Only listen for new posts and updates
+          schema: 'public',
+          table: 'posts',
+        },
+        () => {
+          // Throttle cache invalidation to prevent excessive re-fetches
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => {
+            refetchPosts()
+          }, 1000) // Wait 1 second to batch rapid changes
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'posts',
+        },
+        () => {
+          // Throttle cache invalidation to prevent excessive re-fetches
+          clearTimeout(timeoutId)
+          timeoutId = setTimeout(() => {
+            refetchPosts()
+          }, 1000) // Wait 1 second to batch rapid changes
+        }
+      )
+      .subscribe()
+
+    return () => {
+      clearTimeout(timeoutId)
+      supabase.removeChannel(postsChannel)
+    }
+  }, [supabase, refetchPosts])
 
   const categories = ['Electronics', 'Clothing', 'Furniture', 'Books', 'Sports', 'Automotive', 'Home & Garden', 'Toys & Games', 'Collectibles', 'Other']
   const conditions = ['new', 'like_new', 'good', 'fair', 'poor']
@@ -324,7 +359,7 @@ export default function PostList({ onCreatePost, isAuthenticated }: PostListProp
         )}
 
         {/* Posts Grid */}
-        {posts.length === 0 ? (
+        {(posts?.length ?? 0) === 0 ? (
           <div className="text-center py-12">
             <div className="text-lg mb-4" style={{ color: 'var(--text-muted)' }}>No posts found</div>
             {isAuthenticated && (
@@ -335,7 +370,7 @@ export default function PostList({ onCreatePost, isAuthenticated }: PostListProp
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post) => (
+            {(posts ?? []).map((post) => (
               <PostCard key={post.id} post={post} />
             ))}
           </div>
