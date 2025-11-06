@@ -12,7 +12,7 @@
  * - Type safety
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useCache } from '@/lib/cache'
 
 interface UseCachedDataOptions<T> {
@@ -309,9 +309,20 @@ export function useCachedAvatar(avatarUrl: string | null, enabled = true) {
   const [error, setError] = useState<Error | null>(null)
 
   const cache = useCache()
+  // Use ref to store cache methods to avoid dependency issues
+  const cacheRef = useRef(cache)
+  cacheRef.current = cache
+  
+  // Use ref to track current imageUrl for cleanup
+  const imageUrlRef = useRef<string | null>(null)
+  imageUrlRef.current = imageUrl
 
   useEffect(() => {
     if (!avatarUrl || !enabled) {
+      // Cleanup previous image URL if exists
+      if (imageUrlRef.current && imageUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrlRef.current)
+      }
       setImageUrl(null)
       setLoading(false)
       setError(null)
@@ -324,7 +335,7 @@ export function useCachedAvatar(avatarUrl: string | null, enabled = true) {
         setError(null)
 
         // Check cache first
-        const cachedBlob = cache.avatars.get(avatarUrl)
+        const cachedBlob = cacheRef.current.avatars.get(avatarUrl)
         if (cachedBlob) {
           const objectUrl = URL.createObjectURL(cachedBlob)
           setImageUrl(objectUrl)
@@ -341,7 +352,7 @@ export function useCachedAvatar(avatarUrl: string | null, enabled = true) {
         const blob = await response.blob()
 
         // Cache the blob
-        cache.avatars.set(avatarUrl, blob)
+        cacheRef.current.avatars.set(avatarUrl, blob)
 
         // Create object URL for display
         const objectUrl = URL.createObjectURL(blob)
@@ -359,11 +370,11 @@ export function useCachedAvatar(avatarUrl: string | null, enabled = true) {
 
     // Cleanup function to revoke object URLs
     return () => {
-      if (imageUrl && imageUrl.startsWith('blob:')) {
-        URL.revokeObjectURL(imageUrl)
+      if (imageUrlRef.current && imageUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(imageUrlRef.current)
       }
     }
-  }, [avatarUrl, enabled, cache])
+  }, [avatarUrl, enabled])
 
   return { imageUrl, loading, error }
 }

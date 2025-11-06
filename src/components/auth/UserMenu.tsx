@@ -23,6 +23,7 @@ import GlassButton from '@/components/ui/GlassButton'
 import { User as UserIcon, LogOut, Settings, FileText, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { useCreatePost } from '@/contexts/CreatePostContext'
+import { useCachedProfile } from '@/hooks/useCachedData'
 
 export default function UserMenu() {
   // Current user state
@@ -38,6 +39,9 @@ export default function UserMenu() {
   const { openModal: openCreatePost } = useCreatePost()
   
   const supabase = createClient()
+  
+  // Fetch user profile for avatar
+  const { data: profile } = useCachedProfile(user?.id || '', !!user)
 
   /**
    * Effect to manage user authentication state
@@ -77,11 +81,15 @@ export default function UserMenu() {
       <button
         ref={buttonRef}
         onClick={() => setIsOpen(!isOpen)}
-        className="glass-button px-2 sm:px-3 py-1.5 hover:bg-white/15 transition-all duration-300 rounded-xl flex-shrink-0 max-w-[80px] sm:max-w-none"
+        className="glass-button p-0.5 hover:bg-white/15 transition-all duration-300 rounded-full flex-shrink-0 border-2 border-white/20 overflow-hidden"
+        style={{ borderColor: 'var(--border-glass)' }}
+        title={user.user_metadata?.username || user.email?.split('@')[0] || 'User'}
       >
-        <span className="font-medium text-xs sm:text-sm truncate" style={{ color: 'var(--text-primary)' }}>
-          {user.user_metadata?.username || user.email?.split('@')[0]}
-        </span>
+        <img
+          src={profile?.avatar_url || '/defaultPFP.png'}
+          alt={user.user_metadata?.username || user.email?.split('@')[0] || 'User'}
+          className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover"
+        />
       </button>
 
       {isOpen && (
