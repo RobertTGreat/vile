@@ -23,6 +23,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import { useBasket } from '@/contexts/BasketContext'
@@ -65,6 +66,12 @@ export default function PostCard({ post }: PostCardProps) {
   
   // Basket context hook to add items to cart
   const { addToBasket } = useBasket()
+  
+  // Router for programmatic navigation
+  const router = useRouter()
+
+  // Maximum number of tags to display before truncation
+  const MAX_TAGS = 3
 
   /**
    * Format price as USD currency
@@ -124,10 +131,22 @@ export default function PostCard({ post }: PostCardProps) {
     })
   }
 
+  /**
+   * Handle seller username click
+   * Navigates to profile page without triggering parent link
+   */
+  const handleSellerClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (post.profiles.username) {
+      router.push(`/${post.profiles.username}`)
+    }
+  }
+
   return (
-    <GlassCard className="p-6 hover:scale-105 transition-transform duration-300 cursor-pointer relative group">
-      {/* Clickable area for post - wraps most of the card */}
-      <Link href={`/post/${post.id}`} className="block">
+    <GlassCard className="p-6 hover:scale-105 transition-transform duration-300 cursor-pointer relative group flex flex-col h-full">
+      {/* Clickable area for post - wraps entire card content */}
+      <Link href={`/post/${post.id}`} className="block flex-1 flex flex-col">
         {/* Post Image - Shows first image if available */}
         {post.image_urls && post.image_urls.length > 0 && (
           <div className="mb-4 aspect-video rounded-lg overflow-hidden relative">
@@ -160,29 +179,25 @@ export default function PostCard({ post }: PostCardProps) {
             </span>
           )}
         </div>
-      </Link>
 
-      {/* Seller username - clickable link to profile (outside main link to avoid nested anchors) */}
-      <div className="mb-2">
-        {post.profiles.username ? (
-          <Link 
-            href={`/@${post.profiles.username}`}
-            className="text-sm hover:underline transition-colors block"
-            style={{ color: 'var(--text-muted)' }}
-            onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
-            onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
-          >
-            by @{post.profiles.username}
-          </Link>
-        ) : (
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            by {post.profiles.full_name}
-          </p>
-        )}
-      </div>
-
-      {/* Rest of the card content */}
-      <Link href={`/post/${post.id}`} className="block">
+        {/* Seller username - clickable button to profile (stops propagation to avoid nested anchors) */}
+        <div className="mb-2">
+          {post.profiles.username ? (
+            <button
+              onClick={handleSellerClick}
+              className="text-sm hover:underline transition-colors block text-left w-full"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={(e) => (e.target as HTMLElement).style.color = 'var(--text-primary)'}
+              onMouseLeave={(e) => (e.target as HTMLElement).style.color = 'var(--text-muted)'}
+            >
+              by @{post.profiles.username}
+            </button>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+              by {post.profiles.full_name}
+            </p>
+          )}
+        </div>
         {/* Description - limited to 1 line */}
         {post.description && (
           <p className="mb-4 line-clamp-1" style={{ color: 'var(--text-secondary)' }}>
@@ -220,10 +235,10 @@ export default function PostCard({ post }: PostCardProps) {
 
         {/* Tags and category section */}
         <div className="flex flex-wrap gap-2 mb-4">
-          {/* Custom colored tags */}
+          {/* Custom colored tags - truncated to MAX_TAGS */}
           {post.post_tags && post.post_tags.length > 0 && (
             <>
-              {post.post_tags.map((tagWrapper, index) => (
+              {post.post_tags.slice(0, MAX_TAGS).map((tagWrapper, index) => (
                 <span
                   key={index}
                   className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs"
@@ -236,6 +251,12 @@ export default function PostCard({ post }: PostCardProps) {
                   {tagWrapper.tags.name}
                 </span>
               ))}
+              {/* Show "+X more" indicator if there are more tags */}
+              {post.post_tags.length > MAX_TAGS && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-white/10 text-white/70">
+                  +{post.post_tags.length - MAX_TAGS} more
+                </span>
+              )}
             </>
           )}
           
@@ -247,8 +268,11 @@ export default function PostCard({ post }: PostCardProps) {
           )}
         </div>
 
-        {/* Footer with date and add to cart button */}
-        <div className="flex justify-between items-center text-sm" style={{ color: 'var(--text-muted)' }}>
+        {/* Spacer to push footer to bottom */}
+        <div className="flex-grow"></div>
+
+        {/* Footer with date and add to cart button - always at bottom */}
+        <div className="flex justify-between items-center text-sm mt-auto pt-4" style={{ color: 'var(--text-muted)' }}>
           {/* Creation date */}
           <div className="flex items-center gap-1">
             <Calendar size={14} />
