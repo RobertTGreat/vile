@@ -29,8 +29,9 @@ import { useCreatePost } from '@/contexts/CreatePostContext'
 import BasketModal from '@/components/basket/BasketModal'
 import UniversalCreatePostModal from '@/components/posts/UniversalCreatePostModal'
 import MessagePopup from '@/components/messages/MessagePopup'
-import { ShoppingBag, User as UserIcon, Search, ShoppingCart, Plus } from 'lucide-react'
+import { User as UserIcon, Search, ShoppingCart, Plus } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 interface HeaderProps {
@@ -98,8 +99,14 @@ export default function Header({ onAuth }: HeaderProps) {
             {/* Left: Logo */}
             <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
               <Link href="/" className="flex items-center space-x-2 lg:space-x-3 hover:opacity-80 transition-opacity flex-shrink-0">
-                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'var(--bg-glass)' }}>
-                  <ShoppingBag size={20} className="lg:w-6 lg:h-6" style={{ color: 'var(--text-primary)' }} />
+                <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center overflow-hidden" style={{ backgroundColor: 'var(--bg-glass)' }}>
+                  <Image 
+                    src="/repackedlogo.png" 
+                    alt="Repacked Logo" 
+                    width={40}
+                    height={40}
+                    className="w-full h-full object-contain"
+                  />
                 </div>
                 <h1 className="hidden md:block text-xl lg:text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>Repacked</h1>
               </Link>
