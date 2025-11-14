@@ -34,6 +34,20 @@ import Link from 'next/link'
 import { useBasket } from '@/contexts/BasketContext'
 import { useMessaging } from '@/contexts/MessagingContext'
 import { getOrCreateConversation } from '@/lib/messaging-utils'
+import dynamicImport from 'next/dynamic'
+
+// Dynamically import map component to avoid SSR issues with Leaflet
+const SinglePostMap = dynamicImport(() => import('@/components/map/SinglePostMap'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] flex items-center justify-center glass-card rounded-xl">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <p style={{ color: 'var(--text-muted)' }}>Loading map...</p>
+      </div>
+    </div>
+  )
+})
 
 /**
  * Post interface - represents a marketplace listing
@@ -497,6 +511,23 @@ export default function PostPage() {
                 </div>
               </div>
             </GlassCard>
+
+            {/* Map Section - Separate Card */}
+            {post.location && (
+              <GlassCard className="p-6">
+                <h3 className="font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
+                  Location
+                </h3>
+                <SinglePostMap
+                  location={post.location}
+                  title={post.title}
+                  price={post.price}
+                  imageUrl={post.image_urls?.[0] || null}
+                  createdAt={post.created_at}
+                  isSold={post.is_sold}
+                />
+              </GlassCard>
+            )}
           </div>
         </div>
       </main>

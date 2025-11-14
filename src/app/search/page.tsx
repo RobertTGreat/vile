@@ -24,6 +24,7 @@ import { useState, useEffect } from 'react'
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase-client'
+import { safeGetUser } from '@/lib/auth-utils'
 import { User } from '@supabase/supabase-js'
 import Header from '@/components/layout/Header'
 import SearchPostList from '@/components/posts/SearchPostList'
@@ -48,7 +49,7 @@ export default function SearchPage() {
    */
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await safeGetUser(supabase)
       setUser(user)
       setLoading(false)
     }
@@ -57,13 +58,18 @@ export default function SearchPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null)
+        // Handle token refresh errors
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          setUser(null)
+        } else {
+          setUser(session?.user ?? null)
+        }
         setLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
   /**
    * Handle create post action

@@ -20,6 +20,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase-client'
+import { safeGetUser } from '@/lib/auth-utils'
 import { User } from '@supabase/supabase-js'
 import GlassButton from '@/components/ui/GlassButton'
 import UserMenu from '@/components/auth/UserMenu'
@@ -63,7 +64,7 @@ export default function Header({ onAuth }: HeaderProps) {
    */
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await safeGetUser(supabase)
       setUser(user)
       setLoading(false)
     }
@@ -72,13 +73,18 @@ export default function Header({ onAuth }: HeaderProps) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null)
+        // Handle token refresh errors
+        if (event === 'TOKEN_REFRESHED' && !session) {
+          setUser(null)
+        } else {
+          setUser(session?.user ?? null)
+        }
         setLoading(false)
       }
     )
 
     return () => subscription.unsubscribe()
-  }, [supabase.auth])
+  }, [supabase])
 
   /**
    * Handle search form submission
