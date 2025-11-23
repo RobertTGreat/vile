@@ -27,7 +27,7 @@ import { useRouter } from 'next/navigation'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import { useBasket } from '@/contexts/BasketContext'
-import { MapPin, Calendar, Tag, DollarSign, ShoppingCart, Plus } from 'lucide-react'
+import { MapPin, Calendar, Tag, ShoppingCart, Plus } from 'lucide-react'
 
 /**
  * Post interface - represents a marketplace listing
@@ -74,14 +74,14 @@ export default function PostCard({ post }: PostCardProps) {
   const MAX_TAGS = 3
 
   /**
-   * Format price as USD currency
+   * Format price as GBP currency
    * Returns "Price not specified" if price is null
    */
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price not specified'
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'GBP'
     }).format(price)
   }
 
@@ -209,7 +209,6 @@ export default function PostCard({ post }: PostCardProps) {
         <div className="flex items-center gap-4 mb-4 text-sm" style={{ color: 'var(--text-muted)' }}>
           {/* Price display */}
           <div className="flex items-center gap-1">
-            <DollarSign size={16} />
             <span className={post.price ? 'font-medium' : ''} style={{ color: post.price ? 'var(--text-primary)' : 'var(--text-muted)' }}>
               {formatPrice(post.price)}
             </span>

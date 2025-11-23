@@ -22,10 +22,11 @@
  */
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useBasket } from '@/contexts/BasketContext'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
-import { X, ShoppingCart, Trash2, DollarSign, Eye } from 'lucide-react'
+import { X, ShoppingCart, Trash2, Eye } from 'lucide-react'
 import Link from 'next/link'
 
 interface BasketModalProps {
@@ -36,24 +37,18 @@ interface BasketModalProps {
 export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
   // Get basket state and methods from context
   const { items, removeFromBasket, clearBasket, getTotalPrice, getItemCount } = useBasket()
-  
-  // Checkout loading state
-  const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const router = useRouter()
 
   // Don't render if modal is closed
   if (!isOpen) return null
 
   /**
    * Handle checkout process
-   * Placeholder for future payment integration
+   * Navigates to checkout page
    */
   const handleCheckout = () => {
-    setIsCheckingOut(true)
-    // TODO: Implement checkout flow
-    setTimeout(() => {
-      setIsCheckingOut(false)
-      onClose()
-    }, 2000)
+    onClose()
+    router.push('/checkout')
   }
 
   return (
@@ -136,9 +131,8 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
                         by {item.seller}
                       </p>
                       <div className="flex items-center gap-1">
-                        <DollarSign size={12} style={{ color: 'var(--text-primary)' }} />
                         <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                          {item.price.toFixed(2)}
+                          £{item.price.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -171,19 +165,17 @@ export default function BasketModal({ isOpen, onClose }: BasketModalProps) {
                 <span className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Total:
                 </span>
-                <span className="text-lg font-bold flex items-center gap-1" style={{ color: 'var(--text-primary)' }}>
-                  <DollarSign size={16} />
-                  {getTotalPrice().toFixed(2)}
+                <span className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                  £{getTotalPrice().toFixed(2)}
                 </span>
               </div>
 
               <div className="flex flex-col gap-2">
                 <GlassButton
                   onClick={handleCheckout}
-                  disabled={isCheckingOut}
                   className="w-full"
                 >
-                  {isCheckingOut ? 'Processing...' : 'Checkout'}
+                  Checkout
                 </GlassButton>
                 <GlassButton
                   variant="secondary"

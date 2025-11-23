@@ -15,7 +15,7 @@
 
 import { useEffect, useState } from 'react'
 import { geocodeLocation } from '@/lib/geocoding'
-import { MapPin, DollarSign, Calendar } from 'lucide-react'
+import { MapPin, Calendar } from 'lucide-react'
 import dynamic from 'next/dynamic'
 
 // Dynamically import Leaflet components to avoid SSR issues
@@ -69,13 +69,13 @@ function MapUpdater({ lat, lng }: { lat: number; lng: number }) {
 }
 
 /**
- * Format price as USD currency
+ * Format price as GBP currency
  */
 const formatPrice = (price: number | null) => {
   if (!price) return 'Price not specified'
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'GBP'
   }).format(price)
 }
 
@@ -244,7 +244,6 @@ export default function SinglePostMap({ location, title, price, imageUrl, create
 
               {/* Price */}
               <div className="flex items-center gap-2 mb-2">
-                <DollarSign size={16} style={{ color: 'var(--text-muted)' }} />
                 <span className="font-semibold" style={{ color: price ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                   {formatPrice(price)}
                 </span>

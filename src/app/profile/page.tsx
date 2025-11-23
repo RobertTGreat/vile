@@ -31,7 +31,7 @@ import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import EditPostModal from '@/components/posts/EditPostModal'
 import ProfileEditModal from '@/components/auth/ProfileEditModal'
-import { Edit, Trash2, Eye, Calendar, DollarSign, MapPin, UserCircle } from 'lucide-react'
+import { Edit, Trash2, Eye, Calendar, MapPin, UserCircle } from 'lucide-react'
 import Link from 'next/link'
 
 /**
@@ -177,9 +177,9 @@ export default function ProfilePage() {
 
   const formatPrice = (price: number | null) => {
     if (!price) return 'Price not specified'
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-GB', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'GBP'
     }).format(price)
   }
 
@@ -331,7 +331,6 @@ export default function ProfilePage() {
                   {/* Price and Condition */}
                   <div className="flex items-center gap-4 mb-2 text-sm" style={{ color: 'var(--text-muted)' }}>
                     <div className="flex items-center gap-1">
-                      <DollarSign size={16} />
                       <span className={post.price ? 'font-medium' : ''} style={{ color: post.price ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                         {formatPrice(post.price)}
                       </span>

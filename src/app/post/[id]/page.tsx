@@ -29,7 +29,7 @@ import Header from '@/components/layout/Header'
 import GlassCard from '@/components/ui/GlassCard'
 import GlassButton from '@/components/ui/GlassButton'
 import AuthModal from '@/components/auth/AuthModal'
-import { MapPin, Calendar, Tag, DollarSign, UserIcon, ArrowLeft, ShoppingCart, MessageCircle } from 'lucide-react'
+import { MapPin, Calendar, Tag, UserIcon, ArrowLeft, ShoppingCart, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useBasket } from '@/contexts/BasketContext'
 import { useMessaging } from '@/contexts/MessagingContext'
@@ -406,9 +406,8 @@ export default function PostPage() {
                     {post.title}
                   </h1>
                   {post.price && (
-                    <div className="flex items-center gap-2 text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-                      <DollarSign size={24} />
-                      {post.price.toFixed(2)}
+                    <div className="text-2xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                      £{post.price.toFixed(2)}
                     </div>
                   )}
                 </div>

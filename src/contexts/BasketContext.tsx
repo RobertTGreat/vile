@@ -25,7 +25,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 export interface BasketItem {
   id: string            // Post ID
   title: string         // Item title
-  price: number         // Item price in USD
+  price: number         // Item price in GBP
   image_url: string     // Primary image URL
   seller: string        // Seller username
 }

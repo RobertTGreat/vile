@@ -21,7 +21,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import { Icon } from 'leaflet'
 import Link from 'next/link'
 import { geocodeLocation } from '@/lib/geocoding'
-import { MapPin, DollarSign, Calendar, ExternalLink } from 'lucide-react'
+import { MapPin, Calendar, ExternalLink } from 'lucide-react'
 import 'leaflet/dist/leaflet.css'
 
 /**
@@ -82,13 +82,13 @@ function MapBoundsUpdater({ posts }: { posts: PostWithCoordinates[] }) {
 }
 
 /**
- * Format price as USD currency
+ * Format price as GBP currency
  */
 const formatPrice = (price: number | null) => {
   if (!price) return 'Price not specified'
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-GB', {
     style: 'currency',
-    currency: 'USD'
+    currency: 'GBP'
   }).format(price)
 }
 
@@ -273,7 +273,6 @@ export default function MapViewer({ posts, center = [40.7128, -74.0060], zoom = 
 
                   {/* Price */}
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign size={16} style={{ color: 'var(--text-muted)' }} />
                     <span className="font-semibold" style={{ color: post.price ? 'var(--text-primary)' : 'var(--text-muted)' }}>
                       {formatPrice(post.price)}
                     </span>

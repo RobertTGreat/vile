@@ -23,7 +23,7 @@ import { useCachedMessages, useCachedPost } from '@/hooks/useCachedData'
 import { useCache } from '@/lib/cache'
 import GlassButton from '@/components/ui/GlassButton'
 import GlassInput from '@/components/ui/GlassInput'
-import { ArrowLeft, Send, Loader2, ExternalLink, DollarSign } from 'lucide-react'
+import { ArrowLeft, Send, Loader2, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 
 /**
@@ -472,9 +472,8 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                 </h4>
                 {postContext.price && (
                   <div className="flex items-center gap-1">
-                    <DollarSign size={12} style={{ color: 'var(--text-secondary)' }} />
                     <span className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>
-                      {postContext.price.toFixed(2)}
+                      £{postContext.price.toFixed(2)}
                     </span>
                   </div>
                 )}
